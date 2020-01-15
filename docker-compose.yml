@@ -1,0 +1,22 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      #- INGREDIENTS_FILE=/opt/bin/backend/ingredients_txt/all_ingredients.txt
+    volumes:
+      - ./src:/opt/bin/backend/src/
+      #- ./ingredients_txt:/opt/bin/backend/ingredients_txt/
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+    ports:
+      - "9210:9200"
+      - "9310:9300"
+    environment:
+      - discovery.type=single-node
+#    command: ["elasticsearch", "-E logger.org.elasticsearch.transport=trace"]
+#    command: ["elasticsearch", "-E logger.transport.level=DEBUG"]
