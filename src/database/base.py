@@ -4,6 +4,7 @@ import json
 from elasticsearch import Elasticsearch
 from app import app
 import time
+import unicodedata
 
 # TODO: finish logs
 # TODO: do exceptions
@@ -114,7 +115,6 @@ class ES_pizzerias():
         else:
             app.logger.info(f"Failed to insert pizza {pizza_name}: status code: {r.status_code}, {r.text}")
 
-import unicodedata
 
 class ES_locations():
 
@@ -152,9 +152,3 @@ class ES_locations():
             app.logger.info("Succesfully removed locations index")
         else:
             app.logger.info(f"Failed to remove locations index: status code: {r.status_code}, {r.text}")
-
-
-config = ES_config()
-location = ES_locations(config)
-location.delete_index()
-location.insert_location('30-122', 'https://www.pyszne.pl/restauracja-krakow-krakow-krowodrza-30-122' ,'Kraków')
