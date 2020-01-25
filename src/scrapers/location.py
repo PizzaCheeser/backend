@@ -1,37 +1,53 @@
-from scrapers.config import ScraperConfig
+from scrapers.base_scraper import ScraperBase
 from bs4 import BeautifulSoup
 import requests
 import re
+from database.base import location
+import database.base
 
 class LocationScraper():
-    def __init__(self, config):
-        self.url = config.url
-        self.redirection = config.redirection
+    def __init__(self, scraper_config):
+        self.url = scraper_config.url
+        self.redirection = scraper_config.redirection
 
     def get_soup(self, url):
         source = requests.get(url).text  # we're getting website text
         soup = BeautifulSoup(source, 'html.parser')  # and parse to bs
         return soup
 
-    def scrape_provinces(self, url):
+    def __no_restaurant(self, text):
+        soup = BeautifulSoup(text, 'html.parser')
+        no_restaurant=soup.find_all('div', 'norestaurant')
+        if no_restaurant:
+            return True
+        else:
+            return False
+
+    def get_delarea_links(self, url):
         # https://www.pyszne.pl/restauracja
-
-        soup=self.get_soup(url)
-
-        provinces = soup.find_all('div', 'delarea')
-        provinces_list = [i.find('a')['href'] for i in provinces]
-
-        return provinces_list
-
-
-    def get_postcode(self,url):
-
         soup = self.get_soup(url)
-        test = soup.find_all('div', 'delarea')
-        print("TESTESTEST:", test)
+        delareas = soup.find_all('div', 'delarea')
+        delarea_links = [delarea.find('a')['href'] for delarea in delareas]
+        return delarea_links
 
+    def scrape_provinces(self, url):
+
+        links = self.get_delarea_links(url)
+
+        if not links:
+            details=self.find_details(url)
+            print(details)
+            location.insert_location(code=details['postcode'], link=details['link'], city=details['city'], empty=details['empty'])
+        else:
+            for i in links:
+                self.scrape_provinces(obj.url + i[1:])
+
+
+
+    def find_details(self,url):
 
         script=requests.get(url).text
+        empty=self.__no_restaurant(script)
         reg_id = "(?<=AreaId = ')(.*)(?=')"
         reg_city = "(?<=AreaCity = ')(.*)(?=')"
         reg_string = "(?<=AreaString = ')(.*)(?=')"
@@ -40,26 +56,21 @@ class LocationScraper():
         city = re.findall(reg_city, script)
         city_en = re.findall(reg_string, script)
 
-        print("postcode:", postcode, "city", city, "city en", city_en, "link:", url)
+        result = {"postcode": postcode[0], "city": city[0], "city en": city_en[0], "link": url, "empty": empty}
 
-        #find= script.find("AreaId")
-        #print("FINDED:", script[find-10:find+40])
-
-
-config = ScraperConfig()
-obj=LocationScraper(config)
-provinces_list=obj.scrape_provinces(obj.url+obj.redirection)
-
-restaurants=list()
-for province in provinces_list:
-    restaurants.extend(obj.scrape_provinces(obj.url + province[1:]))
-
-postcode=list()
-for restaurant in restaurants[:1]:
-    postcode.extend(obj.scrape_provinces(obj.url + restaurant[1:]))
+        return result
 
 
-for postcod in postcode:
-    obj.get_postcode(obj.url+postcod)
+    def scrape_locations(self):
+        base = self.url + self.redirection
+        result =self.scrape_provinces(base)
 
-#print(postcode)
+
+
+scraper_settings = ScraperBase()
+obj=LocationScraper(scraper_settings)
+#provinces_list=obj.scrape_provinces(obj.url+obj.redirection)
+obj.scrape_locations()
+
+
+

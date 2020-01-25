@@ -1,7 +1,5 @@
 
-
-
-class ScraperConfig():
+class ScraperBase():
     def __init__(self, country='PL'
                  ):
         if country == 'PL':

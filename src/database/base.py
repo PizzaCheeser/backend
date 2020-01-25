@@ -123,11 +123,13 @@ class ES_locations():
         self.index = config.location_index
         self.header = config.header
 
-    def insert_location(self, code, link, city):
+    def insert_location(self, code, link, city, empty):
         location = {
             "post-code": code,
             "link": link,
             "city": city,
+            "empty": empty,
+            "timestamp":time.time()
         }
 
         without_accents = unicodedata.normalize('NFKD', city).encode('ASCII', 'ignore').decode('utf-8').lower()
@@ -152,3 +154,6 @@ class ES_locations():
             app.logger.info("Succesfully removed locations index")
         else:
             app.logger.info(f"Failed to remove locations index: status code: {r.status_code}, {r.text}")
+
+config = ES_config()
+location = ES_locations(config)
