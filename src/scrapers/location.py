@@ -1,19 +1,16 @@
-from scrapers.base_scraper import ScraperBase
 from bs4 import BeautifulSoup
 import requests
 import re
 from database.base import location
-import database.base
+from app import app
+from exceptions.scraperExceptions import UnexpectedWebsiteResponse
+
 
 class LocationScraper():
     def __init__(self, scraper_config):
         self.url = scraper_config.url
         self.redirection = scraper_config.redirection
-
-    def get_soup(self, url):
-        source = requests.get(url).text  # we're getting website text
-        soup = BeautifulSoup(source, 'html.parser')  # and parse to bs
-        return soup
+        self.scraper_config=scraper_config
 
     def __no_restaurant(self, text):
         soup = BeautifulSoup(text, 'html.parser')
@@ -23,54 +20,69 @@ class LocationScraper():
         else:
             return False
 
-    def get_delarea_links(self, url):
-        # https://www.pyszne.pl/restauracja
-        soup = self.get_soup(url)
+    def __get_delarea_links(self, url):
+        soup = self.scraper_config.get_soup(url)
         delareas = soup.find_all('div', 'delarea')
         delarea_links = [delarea.find('a')['href'] for delarea in delareas]
         return delarea_links
 
-    def scrape_provinces(self, url):
+    def __find_details(self, url):
+        def create_regexp(search, text):
+            regexp = f"(?<={search} = ')(.*)(?=')"
+            value = re.findall(regexp, text)
+            return value
 
-        links = self.get_delarea_links(url)
+        script = requests.get(url).text
 
-        if not links:
-            details=self.find_details(url)
-            print(details)
-            location.insert_location(code=details['postcode'], link=details['link'], city=details['city'], empty=details['empty'])
-        else:
-            for i in links:
-                self.scrape_provinces(obj.url + i[1:])
+        empty = self.__no_restaurant(script)
+        postcode = create_regexp("AreaId", script)
+        city = create_regexp("AreaCity", script)
+        city_en = create_regexp("AreaString", script)
+        # city_en - we are able to get city name without polish characters not used for now
 
+        if len(postcode) != 1:
+            app.logger.warning(f"Unexpected website response for {url}, postcode: {postcode} returns too many results")
+        if len(city) != 1:
+            app.logger.warning(f"Unexpected website response for {url}, city: {city} returns too many results")
 
+        if not postcode:
+            raise UnexpectedWebsiteResponse(f"Website {url} doesn't return correct AreaId value (postcode)")
+        if not city:
+            raise UnexpectedWebsiteResponse(f"Website {url} doesn't return correct AreaCity value (city)")
 
-    def find_details(self,url):
+        country = self.url.split('.')[-1][:-1]
 
-        script=requests.get(url).text
-        empty=self.__no_restaurant(script)
-        reg_id = "(?<=AreaId = ')(.*)(?=')"
-        reg_city = "(?<=AreaCity = ')(.*)(?=')"
-        reg_string = "(?<=AreaString = ')(.*)(?=')"
-
-        postcode = re.findall(reg_id, script)
-        city = re.findall(reg_city, script)
-        city_en = re.findall(reg_string, script)
-
-        result = {"postcode": postcode[0], "city": city[0], "city en": city_en[0], "link": url, "empty": empty}
+        result = {
+            "postcode": postcode[0],
+            "city": city[0],
+            "link": url,
+            "empty": empty,
+            "country": country
+        }
 
         return result
 
+    def scrape_locations(self, url=None):
+        if not url:
+            url = self.url + self.redirection
+        links = self.__get_delarea_links(url)
 
-    def scrape_locations(self):
-        base = self.url + self.redirection
-        result =self.scrape_provinces(base)
+        if not links:
+            details = self.__find_details(url)
+
+            app.logger.info(details)
+
+            location.insert_location(
+                code=details['postcode'],
+                link=details['link'],
+                city=details['city'],
+                empty=details['empty']
+            )
+        else:
+            for i in links:
+                self.scrape_locations(self.url + i[1:])
 
 
-
-scraper_settings = ScraperBase()
-obj=LocationScraper(scraper_settings)
-#provinces_list=obj.scrape_provinces(obj.url+obj.redirection)
-obj.scrape_locations()
 
 
 
