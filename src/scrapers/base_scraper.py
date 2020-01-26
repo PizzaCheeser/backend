@@ -19,6 +19,6 @@ class ScraperBase():
         return soup
 
 
-scraper_settings = ScraperBase()
-obj = LocationScraper(scraper_settings)
-obj.scrape_locations()
+#scraper_settings = ScraperBase()
+#obj = LocationScraper(scraper_settings)
+#obj.scrape_locations()

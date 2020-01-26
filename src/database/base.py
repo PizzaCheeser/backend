@@ -73,6 +73,7 @@ class ES_pizzerias():
             app.logger.info(f"Failed to remove pizzerias index: status code: {r.status_code}, {r.text}")
 
     def insert_pizzeria(self, name, **kwargs):
+        #TODO: insert pizza id instead of name as id
         pizzeria = {
             "name": name,
             "delivery_postcodes": [],
