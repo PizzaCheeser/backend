@@ -66,7 +66,7 @@ class LocationScraper():
         if not url:
             url = self.url + self.redirection
         links = self.__get_delarea_links(url)
-
+        # TODO: implement celery
         if not links:
             details = self.__find_details(url)
 

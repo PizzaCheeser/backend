@@ -122,6 +122,7 @@ class ES_locations():
         self.url = config.url
         self.index = config.location_index
         self.header = config.header
+        self.es = config.es
 
     def insert_location(self, code, link, city, empty):
         location = {
@@ -155,5 +156,34 @@ class ES_locations():
         else:
             app.logger.info(f"Failed to remove locations index: status code: {r.status_code}, {r.text}")
 
+    def get_links(self, empty=False, city=None, postcode=None):
+        query = [
+            {"match": {"empty": empty}}
+        ]
+
+        if city:
+            query.append({"match":{"city":city}})
+        if postcode:
+            query.append({"match":{"post-code.keyword": postcode}})
+
+        full_query = {
+                "query": {
+                    "bool": {
+                        "must": query,
+                    }
+                }
+        }
+
+        results = self.es.search(index="locations", body=full_query, size=10000)
+
+        results_amount = results["hits"]["total"]["value"]
+        links = [result['_source']['link'] for result in results['hits']['hits']]
+
+        if results_amount != len(links):
+            app.logger.warning(f"Not all results are returned for city: {city}, postcode: {postcode}")
+
+        return links
+
 config = ES_config()
 location = ES_locations(config)
+location.get_links(city="Legnica")
