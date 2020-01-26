@@ -120,7 +120,7 @@ class ES_search():
         try:
             res = self.es.search(index="pizzerias", body=query)
         except Exception as e:
-            raise SearchException("Get searching via ingredients and postcode failed") from e
+            raise SearchException("Searching via ingredients and postcode failed") from e
 
         return res
 

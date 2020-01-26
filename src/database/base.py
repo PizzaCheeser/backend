@@ -11,6 +11,7 @@ import unicodedata
 # TODO: merge pizzas with pizzerias in search function
 # TODO: pizza -> pizzas, refactor pizzerias_id name
 
+
 class ES_config():
     def __init__(self, host=app.config['HOST'],
                  pizzerias_id=app.config['ES_PIZZERIAS_ID'],
@@ -41,6 +42,7 @@ class ES_pizzerias():
         self.url = config.url
         self.pizzerias_id = config.pizzerias_id
         self.header = config.header
+        self.es=config.es
 
     def create_structure(self):
 
@@ -72,28 +74,32 @@ class ES_pizzerias():
         else:
             app.logger.info(f"Failed to remove pizzerias index: status code: {r.status_code}, {r.text}")
 
-    def insert_pizzeria(self, name, **kwargs):
-        #TODO: insert pizza id instead of name as id
+    def insert_pizzeria(self, data):
+
+        pizzeria_id = data.pop('pizzeria_id')
+        opening_hours = json.dumps(data.pop('opening_hours'))
+
         pizzeria = {
-            "name": name,
+            "name": "",
             "delivery_postcodes": [],
-            "scraped_timestamp": time.time(),
-            "opening_hours": "",
+            "timestamp": time.time(),
+            "opening_hours": opening_hours,
             "city": "",
             "address": "",
             "url": "",
             "pizza": {}
         }
-        pizzeria.update(kwargs)
+        pizzeria.update(data)
+
         r = requests.post(
-            url=self.url + self.pizzerias_id + f"/_doc/{name}",
+            url=self.url + self.pizzerias_id + f"/_doc/{pizzeria_id}",
             data=json.dumps(pizzeria),
             headers=self.header
         )
         if r.status_code == 200 or r.status_code == 201:
-            app.logger.info(f"Succesfully inserted pizzeria {name}")
+            app.logger.info(f"Succesfully inserted pizzeria {pizzeria_id}")
         else:
-            app.logger.info(f"Failed to insert pizzeria {name}: status code: {r.status_code}, {r.text}")
+            app.logger.info(f"Failed to insert pizzeria {pizzeria_id}: status code: {r.status_code}, {r.text}")
 
     def insert_pizza(self, pizzeria_name, pizza_name, **kwargs):
 
@@ -115,6 +121,42 @@ class ES_pizzerias():
             app.logger.info(f"Succesfully inserted pizza {pizza_name}")
         else:
             app.logger.info(f"Failed to insert pizza {pizza_name}: status code: {r.status_code}, {r.text}")
+
+    def check_if_exists(self, pizzeria_id):
+        r = requests.get(
+            url=self.url + self.pizzerias_id + f"/_doc/{pizzeria_id}",
+            headers=self.header
+        )
+
+        if r.status_code == 200 or r.status_code == 201:
+            app.logger.info(f"Pizzeria {pizzeria_id} exists")
+            return True
+        else:
+            app.logger.info(f"Pizzeria {pizzeria_id} doesn't exists")
+            return False
+
+
+    def update_postcode(self, pizzeria_id, postcode):
+        #TODO: how to not update if already exists?
+        data = {
+            "script":
+                {"source": "ctx._source.delivery_postcodes.add(params.delivery_postcodes)",
+                 "lang": "painless", #TODO: what is it?
+                "params": {"delivery_postcodes": postcode}
+                 }
+        }
+
+        r = requests.post(self.url+self.pizzerias_id + '/_update/'+pizzeria_id,
+                          json=data, headers=self.header)
+
+        if r.status_code == 200 or r.status_code == 201:
+            app.logger.info(f"Updated {pizzeria_id} with postcode {postcode}")
+        else:
+            app.logger.info(f"Not updated {pizzeria_id} with postcode {postcode}")
+
+    def check_timestamp(self, pizzeria_id):
+        #TODO: implement this!
+        return True
 
 
 class ES_locations():
@@ -157,7 +199,7 @@ class ES_locations():
         else:
             app.logger.info(f"Failed to remove locations index: status code: {r.status_code}, {r.text}")
 
-    def get_links(self, empty=False, city=None, postcode=None):
+    def get_location(self, empty=False, city=None, postcode=None):
         query = [
             {"match": {"empty": empty}}
         ]
@@ -178,13 +220,15 @@ class ES_locations():
         results = self.es.search(index="locations", body=full_query, size=10000)
 
         results_amount = results["hits"]["total"]["value"]
-        links = [result['_source']['link'] for result in results['hits']['hits']]
+        location = [
+            {"postcode": result['_source']['post-code'],
+                        "city": result['_source']['city'],
+                        "link": result['_source']['link']
+                        } for result in results['hits']['hits']
+        ]
 
-        if results_amount != len(links):
+        if results_amount != len(location):
             app.logger.warning(f"Not all results are returned for city: {city}, postcode: {postcode}")
 
-        return links
+        return location
 
-config = ES_config()
-location = ES_locations(config)
-location.get_links(city="Legnica")

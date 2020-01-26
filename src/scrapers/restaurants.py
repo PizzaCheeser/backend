@@ -1,21 +1,3 @@
-from scrapers.base_scraper import ScraperBase
-
-restaurants = ['https://www.pyszne.pl/restauracja-legnica-legnica-59-200',
-                'https://www.pyszne.pl/restauracja-legnica-legnica-59-203',
-                'https://www.pyszne.pl/restauracja-legnica-legnica-59-204',
-                'https://www.pyszne.pl/restauracja-legnica-legnica-59-205',
-                'https://www.pyszne.pl/restauracja-legnica-legnica-59-206',
-                'https://www.pyszne.pl/restauracja-legnica-legnica-59-208',
-                'https://www.pyszne.pl/restauracja-legnica-legnica-59-209',
-                'https://www.pyszne.pl/restauracja-legnica-legnica-59-210',
-                'https://www.pyszne.pl/restauracja-legnica-legnica-59-211',
-                'https://www.pyszne.pl/restauracja-legnica-legnica-59-212',
-                'https://www.pyszne.pl/restauracja-legnica-legnica-59-217']
-
-from bs4 import BeautifulSoup
-import requests
-import re
-from database.base import location
 from app import app
 from exceptions.scraperExceptions import UnexpectedWebsiteResponse
 
@@ -40,16 +22,25 @@ class PizzeriasScraper():
             raise UnexpectedWebsiteResponse("section card-body doesn't exist")
 
     def __get_opening_hours(self,soup):
-        #TODO: refactoring + exceptions
         info = soup.find_all('div', 'info-tab-section')
-        result = dict()
-        trs=info[0].find('table').find_all("tr")
+        opening_hours = dict()
+        if len(info) < 1:
+            app.logger.warning("List of information is too short, opening hours not added")
+            return opening_hours
+
+        trs = info[0].find('table').find_all("tr")
+        if not trs:
+            app.logger.warning("List of trs doesn't exist, opening hours not added")
+            return opening_hours
 
         for tr in trs:
-            td=tr.find_all("td")
-            result.update({td[0].text.strip():td[1].text.strip()})
+            td = tr.find_all("td")
+            if len(td) != 2:
+                print("asdasdfsafd")
 
-        return result
+            opening_hours.update({td[0].text.strip():td[1].text.strip()})
+
+        return opening_hours
 
     def get_all_pizzerias(self, location_url):
         url = location_url
@@ -80,26 +71,30 @@ class PizzeriasScraper():
         return pizzerias_list
 
 
-    def get_pizzeria_data(self, url, postcode, city):
+    def get_pizzeria_data(self, url, postcode, city, name):
         soup = self.scraper_config.get_soup(url)
-        pizzeria_id = url.split('/')[-1]
+        pizzeria_id = url.split('/')[-1] #TODO: change this
 
         pizzeria = {
             "pizzeria_id": pizzeria_id,
-            "name": self.__get_restaurant_name(soup),
+            "name": name,
             "delivery_postcodes": [postcode],
             "opening_hours": self.__get_opening_hours(soup),
             "city": city,
             "address": self.__get_address(soup),
             "url": url,
         }
+        return pizzeria
 
-        print(pizzeria)
-
-    def insert_pizzeria(self):
-        # TODO: already have a function for it
-        pass
-
+    def insert_pizzerias(self, loc):
+        all_pizzerias = self.get_all_pizzerias(loc['link'])
+        for pizzeria in all_pizzerias:
+            data = self.get_pizzeria_data(
+                    url=self.url+pizzeria['endpoint'],
+                    postcode=loc['postcode'],
+                    city=loc['city'],
+                    name=pizzeria['restaurant_name']
+                )
     def get_pizzas(self):
         pass
 
@@ -109,12 +104,3 @@ class PizzeriasScraper():
 
 
 
-
-scraper_settings = ScraperBase()
-obj = PizzeriasScraper(scraper_settings)
-
-temp_url='https://www.pyszne.pl/dominos-pizza-legnica'
-postcode='59-200'
-city='Legnica'
-
-obj.get_pizzeria_data(temp_url, postcode, city)
