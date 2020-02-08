@@ -8,31 +8,6 @@ class ES_search():
         self.header = {"Content-Type": "application/json"}
         self.es = config.es
 
-    def get_pizzeria(self, name):
-        query = {
-            "match":{
-                "name": "Pizzeria Muzyczna"}
-
-        }
-
-        query = {
-                    "query": {
-                        "match" : {
-                            "name" : {
-                                "query" : "Pizzeria Muzyczna"
-                            }
-                        }
-                    }
-                }
-
-
-        pizzeria = self.es.search(index=self.pizzerias_id, body=query)
-
-
-        hits = pizzeria['hits']['hits']
-        print(hits)
-        return hits
-
     def get_all_pizzerias(self):
 
         try:
@@ -40,7 +15,7 @@ class ES_search():
         except Exception as e:
             raise SearchException("Get all pizzerias failed") from e
 
-        hits=all_results['hits']['hits']
+        hits = all_results['hits']['hits']
         return hits
 
     def search_all_ingredients(self):
@@ -99,13 +74,14 @@ class ES_search():
 
         return full_query
 
-    def __query_search_via_postcode(self, code):
+    def __query_search_via_postcode(self, code=None):
         if not code:
             return None
         else:
             query = {"match": {"delivery_postcodes.keyword": code}}
         return query
 
+    '''
     def get_pizzas(self, res):
         pizzas_list = list()
         if len(res) > 0:
@@ -115,7 +91,7 @@ class ES_search():
             pizzas_list=list()
 
         return pizzas_list
-
+    '''
     def get_pizzeria_details(self):
         pass
 
@@ -126,9 +102,9 @@ class ES_search():
 
         bool_query = dict()
         if ingredients_query:
-            bool_query.update({'must':ingredients_query})
+            bool_query.update({'must': ingredients_query})
         if postcode_query:
-            bool_query.update({"filter":postcode_query})
+            bool_query.update({"filter": postcode_query})
 
         query = {
             "size": 1010,
@@ -139,13 +115,8 @@ class ES_search():
         }
 
         try:
-            res = self.es.search(index="pizzerias", body=query)
+            result = self.es.search(index="pizzerias", body=query)
         except Exception as e:
             raise SearchException("Searching via ingredients and postcode failed") from e
 
-        return res
-
-from database.base import ES_config
-ES_settings = ES_config()
-search=ES_search(ES_settings)
-search.get_pizzeria(name='asdf')
+        return result

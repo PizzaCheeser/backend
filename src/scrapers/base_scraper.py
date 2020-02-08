@@ -1,7 +1,4 @@
 import requests
-from scrapers.restaurants import PizzeriasScraper
-from database.base import ES_config, ES_locations, ES_pizzerias
-
 from bs4 import BeautifulSoup
 
 
@@ -21,35 +18,3 @@ class ScraperBase():
         source = self.session.get(url).text  # we're getting website text
         soup = BeautifulSoup(source, 'html.parser')  # and parse to bs
         return soup
-
-
-
-
-
-
-'''
-scraper_settings = ScraperBase()
-restaurantScraper = PizzeriasScraper(scraper_settings)
-
-config = ES_config()
-location = ES_locations(config)
-locations_list = location.get_location(city="Wrocław", empty=False)
-pizzerias = ES_pizzerias(config)
-
-for loc in locations_list:
-    all_pizzerias = restaurantScraper.get_all_pizzerias(loc['link'])
-    for pizzeria in all_pizzerias:
-        pizzeria_id = pizzeria['endpoint'].split('/')[-1]
-        if pizzerias.check_if_exists(pizzeria_id):
-            pizzerias.update_postcode(pizzeria_id, loc['postcode'])
-            if pizzerias.recently_retrieved(pizzeria_id):
-                continue
-        data = restaurantScraper.get_pizzeria_data(
-            url=restaurantScraper.url + pizzeria['endpoint'], # TODO: pizzeria_id should be passed here
-            postcode=loc['postcode'],
-            city=loc['city'],
-            name=pizzeria['restaurant_name']
-        )
-
-        pizzerias.insert_pizzeria(data)
-'''

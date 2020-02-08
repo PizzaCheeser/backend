@@ -46,7 +46,7 @@ class ScraperDatabaseConnector():
                         continue
                 url = self.restaurantScraper.url + pizzeria['endpoint']
                 data = self.restaurantScraper.get_pizzeria_data(
-                    url=url,  # TODO: pizzeria_id should be passed here
+                    pizzeria_id=pizzeria_id,
                     postcode=loc['postcode'],
                     city=loc['city'],
                     name=pizzeria['restaurant_name']
@@ -58,10 +58,7 @@ class ScraperDatabaseConnector():
 
 
 
-
 connector = ScraperDatabaseConnector()
 #connector.scrape_locations()
 connector.main()
-
-#connector.restaurantScraper.get_pizzas(url='https://www.pyszne.pl//pizzeria-roma-kollataja')
 

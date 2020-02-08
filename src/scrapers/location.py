@@ -9,11 +9,11 @@ class LocationScraper():
     def __init__(self, scraper_config):
         self.url = scraper_config.url
         self.redirection = scraper_config.redirection
-        self.scraper_config=scraper_config
+        self.scraper_config = scraper_config
 
     def __no_restaurant(self, text):
         soup = BeautifulSoup(text, 'html.parser')
-        no_restaurant=soup.find_all('div', 'norestaurant')
+        no_restaurant = soup.find_all('div', 'norestaurant')
         if no_restaurant:
             return True
         else:

@@ -1,5 +1,4 @@
 import requests
-from flask import Flask
 import json
 from elasticsearch import Elasticsearch
 from app import app
@@ -42,7 +41,7 @@ class ES_pizzerias():
         self.url = config.url
         self.pizzerias_id = config.pizzerias_id
         self.header = config.header
-        self.es=config.es
+        self.es = config.es
 
     def create_structure(self):
 
@@ -93,7 +92,7 @@ class ES_pizzerias():
 
         r = requests.post(
             url=self.url + self.pizzerias_id + f"/_doc/{pizzeria_id}",
-            data=json.dumps(pizzeria),
+            json=pizzeria,
             headers=self.header
         )
         if r.status_code == 200 or r.status_code == 201:
@@ -101,8 +100,8 @@ class ES_pizzerias():
         else:
             app.logger.info(f"Failed to insert pizzeria {pizzeria_id}: status code: {r.status_code}, {r.text}")
 
-    def insert_pizza(self,pizzeria_id, pizza):
-        re = self.url + self.pizzerias_id + f'/_update/{pizzeria_id}/'
+    def insert_pizza(self, pizzeria_id, pizza):
+        url = self.url + self.pizzerias_id + f'/_update/{pizzeria_id}/'
         body = {
                   "script": {
                     "source": "ctx._source.pizza.add(params.pizza)",
@@ -113,7 +112,7 @@ class ES_pizzerias():
                 }
 
         r = requests.post(
-            url=re,
+            url=url,
             json=body,
             headers=self.header
         )
@@ -143,7 +142,6 @@ class ES_pizzerias():
         data = {
             "script":
                 {"source": "ctx._source.delivery_postcodes.add(params.delivery_postcodes)",
-                 "lang": "painless", #TODO: what is it?
                 "params": {"delivery_postcodes": postcode}
                  }
         }
@@ -168,7 +166,7 @@ class ES_locations():
         self.index = config.location_index
         self.header = config.header
         self.es = config.es
-        self.s = requests.Session()
+        self.session = requests.Session()
 
     def insert_location(self, code, link, city, empty):
         location = {
@@ -182,7 +180,7 @@ class ES_locations():
         without_accents = unicodedata.normalize('NFKD', city).encode('ASCII', 'ignore').decode('utf-8').lower()
         index = f"{without_accents}-{code}"
 
-        r = self.s.post(
+        r = self.session.post(
             url=self.url + self.index + f"/_doc/{index}",
             data=json.dumps(location),
             headers=self.header
@@ -193,7 +191,7 @@ class ES_locations():
             app.logger.info(f"Failed to insert location {city}, {code}: status code: {r.status_code}, {r.text}")
 
     def delete_index(self):
-        r = self.s.delete(
+        r = self.session.delete(
             url=self.url + f'{self.index}'
         )
 

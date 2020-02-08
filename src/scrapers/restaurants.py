@@ -3,7 +3,7 @@ from exceptions.scraperExceptions import UnexpectedWebsiteResponse
 import json
 import requests
 import re
-import time
+
 
 class PizzeriasScraper():
     def __init__(self, scraper_config):
@@ -73,9 +73,9 @@ class PizzeriasScraper():
 
         return pizzerias_list
 
-    def get_pizzeria_data(self, url, postcode, city, name):
+    def get_pizzeria_data(self, pizzeria_id, postcode, city, name):
+        url = self.url + pizzeria_id
         soup = self.scraper_config.get_soup(url)
-        pizzeria_id = url.split('/')[-1] #TODO: change this
 
         pizzeria = {
             "pizzeria_id": pizzeria_id,
