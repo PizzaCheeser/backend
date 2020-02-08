@@ -1,8 +1,4 @@
-from database.base import ES_config
 from exceptions.exceptions import SearchException
-import requests
-
-import json
 
 
 class ES_search():
@@ -11,6 +7,31 @@ class ES_search():
         self.pizzerias_id = config.pizzerias_id
         self.header = {"Content-Type": "application/json"}
         self.es = config.es
+
+    def get_pizzeria(self, name):
+        query = {
+            "match":{
+                "name": "Pizzeria Muzyczna"}
+
+        }
+
+        query = {
+                    "query": {
+                        "match" : {
+                            "name" : {
+                                "query" : "Pizzeria Muzyczna"
+                            }
+                        }
+                    }
+                }
+
+
+        pizzeria = self.es.search(index=self.pizzerias_id, body=query)
+
+
+        hits = pizzeria['hits']['hits']
+        print(hits)
+        return hits
 
     def get_all_pizzerias(self):
 
@@ -124,4 +145,7 @@ class ES_search():
 
         return res
 
-
+from database.base import ES_config
+ES_settings = ES_config()
+search=ES_search(ES_settings)
+search.get_pizzeria(name='asdf')

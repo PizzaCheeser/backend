@@ -74,7 +74,7 @@ class ES_pizzerias():
         else:
             app.logger.info(f"Failed to remove pizzerias index: status code: {r.status_code}, {r.text}")
 
-    def insert_pizzeria(self, data):
+    def insert_pizzeria(self, data, pizza_list):
 
         pizzeria_id = data.pop('pizzeria_id')
         opening_hours = json.dumps(data.pop('opening_hours'))
@@ -87,7 +87,7 @@ class ES_pizzerias():
             "city": "",
             "address": "",
             "url": "",
-            "pizza": {}
+            "pizza": pizza_list
         }
         pizzeria.update(data)
 
@@ -101,26 +101,18 @@ class ES_pizzerias():
         else:
             app.logger.info(f"Failed to insert pizzeria {pizzeria_id}: status code: {r.status_code}, {r.text}")
 
-    def insert_pizza(self, pizzeria_name, pizza_name, **kwargs):
-
-        pizza = {
-            "name": pizza_name,
-            "ingredients": [],
-            "price_size_ratio": {}
-        }
-
-        pizza.update(kwargs)
+    def insert_pizza(self, pizzeria_name, pizza_name, pizzas_list):
 
         r = requests.post(
-            url=self.url + self.pizzerias_id + f"/_doc/{pizzeria_name}",
-            data=json.dumps({"pizza": pizza}),
+            url=self.url + self.pizzerias_id + f"/_update/{pizzeria_name}",
+            data=json.dumps({"pizza": pizzas_list}),
             headers=self.header
         )
 
         if r.status_code == 201 or r.status_code == 200:
-            app.logger.info(f"Succesfully inserted pizza {pizza_name}")
+            app.logger.info(f"Succesfully inserted pizzas")
         else:
-            app.logger.info(f"Failed to insert pizza {pizza_name}: status code: {r.status_code}, {r.text}")
+            app.logger.info(f"Failed to insert pizzas status code: {r.status_code}, {r.text}")
 
     def check_if_exists(self, pizzeria_id):
         r = requests.get(
@@ -232,6 +224,3 @@ class ES_locations():
             app.logger.warning(f"Not all results are returned for city: {city}, postcode: {postcode}")
 
         return location
-
-config = ES_config()
-location = ES_locations(config)

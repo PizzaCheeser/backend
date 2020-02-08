@@ -1,6 +1,9 @@
 from app import app
 from exceptions.scraperExceptions import UnexpectedWebsiteResponse
-
+import json
+import requests
+import re
+import time
 
 class PizzeriasScraper():
     def __init__(self, scraper_config):
@@ -85,8 +88,103 @@ class PizzeriasScraper():
         }
         return pizzeria
 
-    def get_pizzas(self):
-        pass
+
+    def get_price(self, dinner):
+
+        if len(dinner.find_all('div', {'class': 'meal-json'})) == 1:
+            params = json.loads(dinner.find('div', {'class': 'meal-json'}).text)
+        else:
+            raise UnexpectedWebsiteResponse("div class meal-json returns no product or more than one")
+
+        r = requests.get(
+            url='https://www.pyszne.pl/xHttp/product/side-dishes',
+            params=params
+        )
+
+        json_data = json.loads(re.search('(?<="json":)(.*)(?=})', r.text).group(0))
+        size_price_list = list()
+        for i in json_data:
+            size_price_list.append(
+                {
+                    'size': i['name'],
+                    'price': i['price']
+                }
+            )
+
+        return size_price_list
+
+    '''
+    def get_pizzas(self, url):
+        soup = self.scraper_config.get_soup(url)
+        dinners = soup.find_all('div', class_=re.compile(r'meal-container js-meal-container js-meal-search-*'))
+        pizzas_list = list()
+        for dinner in dinners:
+            general_meal_list = dinner.find_all('span', {'class': 'meal-name'})
+            #print(general_meal_list, '\n\n\n')
+            pizza_ingredients = dinner.find_all('div', {
+                'class': 'meal__description-additional-info'})
+            pizza_description = dinner.find('div', {'class': 'meal__description-choose-from'})
+            #print(pizza_description)
+            if pizza_description:  # TODO: on this way we're getting only pizzas which description
+                size_price = self.get_price(dinner)
+                for general_meals in general_meal_list:
+                    meal_list = general_meals.find_all('span')
+                    for meal in meal_list:
+                        if meal.text.startswith('Pizza'):
+                            pizzas_list.append(
+                                {'name': meal.text, 'ingredients': pizza_ingredients[0].text, #ingredients_preprocessing(pizza_ingredients),
+                                 'size_price': size_price})
+        return pizzas_list
+        
+        
+        
+    def get_pizza(self,url):
+        soup = self.scraper_config.get_soup(url)
+        dinners = soup.find_all('div', class_=re.compile(r'meal-container js-meal-container js-meal-search-*'))
+        pizzas_list = list()
+        for dinner in dinners:
+            general_meal_list = dinner.find('span', {'class': 'meal-name'}).find('span').text
+            if general_meal_list.startswith('Pizza'):
+                pizza_ingredients = dinner.find('div', {
+                    'class': 'meal__description-additional-info'})
+                pizza_description = dinner.find('div', {'class': 'meal__description-choose-from'})
+                if pizza_description:
+                    size_price = self.get_price(dinner)
+                    pizza={'name': general_meal_list, 'ingredients': pizza_ingredients.text,
+                         'size_price': size_price}
+                    yield pizza
+
+    def get_pizzas1(self, url):
+        start_time = time.time()
+
+        pizza_list=list()
+        for pizza in self.get_pizza(url):
+            pizza_list.append(pizza)
+        print(pizza_list)
+        print("--- %s seconds ---" % (time.time() - start_time))
+    '''
+
+    def get_pizzas(self, url):
+        soup = self.scraper_config.get_soup(url)
+        dinners = soup.find_all('div', class_=re.compile(r'meal-container js-meal-container js-meal-search-*'))
+        pizzas_list = list()
+        for dinner in dinners:
+            if dinner.find('span', {'class': 'meal-name'}).find('span'):
+                general_meal_list = dinner.find('span', {'class': 'meal-name'}).find('span').text
+                if general_meal_list.startswith('Pizza'):
+                    pizza_ingredients = dinner.find('div', {
+                        'class': 'meal__description-additional-info'})
+                    pizza_description = dinner.find('div', {'class': 'meal__description-choose-from'})
+                    if pizza_description and pizza_ingredients:
+                        size_price = self.get_price(dinner)
+                        pizzas_list.append(
+                            {'name': general_meal_list, 'ingredients': pizza_ingredients.text,
+                             'size_price': size_price}
+                        )
+                    else:
+                        pass
+        return pizzas_list
+
 
 
 
