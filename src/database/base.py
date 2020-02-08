@@ -87,7 +87,7 @@ class ES_pizzerias():
             "city": "",
             "address": "",
             "url": "",
-            "pizza": pizza_list
+            "pizza": []
         }
         pizzeria.update(data)
 
@@ -113,6 +113,26 @@ class ES_pizzerias():
             app.logger.info(f"Succesfully inserted pizzas")
         else:
             app.logger.info(f"Failed to insert pizzas status code: {r.status_code}, {r.text}")
+
+    def insert_pizza2(self,pizzeria_id, pizza):
+        re = self.url + self.pizzerias_id + f'/_update/{pizzeria_id}/'
+        body = {
+                  "script": {
+                    "source": "ctx._source.pizza.add(params.pizza)",
+                    "params": {
+                      "pizza": pizza
+                    }
+                  }
+                }
+
+        r = requests.post(
+            url=re,
+            json=body,
+            headers=self.header
+        )
+
+        print("RESULT:", r.status_code)
+
 
     def check_if_exists(self, pizzeria_id):
         r = requests.get(

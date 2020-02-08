@@ -137,8 +137,8 @@ class PizzeriasScraper():
         return pizzas_list
         
         
-        
-    def get_pizza(self,url):
+    '''
+    def get_pizza1(self,url):
         soup = self.scraper_config.get_soup(url)
         dinners = soup.find_all('div', class_=re.compile(r'meal-container js-meal-container js-meal-search-*'))
         pizzas_list = list()
@@ -158,11 +158,11 @@ class PizzeriasScraper():
         start_time = time.time()
 
         pizza_list=list()
-        for pizza in self.get_pizza(url):
+        for pizza in self.get_pizza1(url):
             pizza_list.append(pizza)
         print(pizza_list)
         print("--- %s seconds ---" % (time.time() - start_time))
-    '''
+
 
     def get_pizzas(self, url):
         soup = self.scraper_config.get_soup(url)

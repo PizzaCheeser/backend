@@ -58,12 +58,16 @@ class ScraperDatabaseConnector():
 
                 self.pizzerias.insert_pizzeria(data, pizzas_list)
 
+                for pizza in self.restaurantScraper.get_pizza1(self.restaurantScraper.url + pizzeria['endpoint']):
+                    print("PIZZA:", pizza)
+                    self.pizzerias.insert_pizza2(pizzeria_id, pizza)
+
 
 
 
 connector = ScraperDatabaseConnector()
-connector.scrape_locations()
-#connector.main()
+#connector.scrape_locations()
+connector.main()
 
 #connector.restaurantScraper.get_pizzas(url='https://www.pyszne.pl//pizzeria-roma-kollataja')
 
