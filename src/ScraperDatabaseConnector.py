@@ -10,17 +10,17 @@ class ScraperDatabaseConnector():
         scraper_settings = ScraperBase()
 
         self.location = ES_locations(ES_settings)
-        self.locscraperobj=LocationScraper(scraper_settings)
+        self.location_scraper=LocationScraper(scraper_settings)
         self.restaurantScraper = PizzeriasScraper(scraper_settings)
         self.pizzerias = ES_pizzerias(ES_settings)
 
     def scrape_locations(self, url=None):
         if not url:
-            url = self.locscraperobj.url + self.locscraperobj.redirection
-        links = self.locscraperobj.get_delarea_links(url)
+            url = self.location_scraper.url + self.location_scraper.redirection
+        links = self.location_scraper.get_delarea_links(url)
         # TODO: implement celery
         if not links:
-            details = self.locscraperobj.find_details(url)
+            details = self.location_scraper.find_details(url)
 
             #app.logger.info(details)
 
@@ -32,7 +32,7 @@ class ScraperDatabaseConnector():
             )
         else:
             for i in links:
-                self.scrape_locations(self.locscraperobj.url + i[1:])
+                self.scrape_locations(self.location_scraper.url + i[1:])
 
     def main(self):
         locations_list = self.location.get_location(city="Wrocław", empty=False)
