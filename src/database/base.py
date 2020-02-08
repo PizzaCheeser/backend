@@ -154,7 +154,7 @@ class ES_pizzerias():
         else:
             app.logger.info(f"Not updated {pizzeria_id} with postcode {postcode}")
 
-    def check_timestamp(self, pizzeria_id):
+    def recently_retrieved(self, pizzeria_id):
         #TODO: implement this!
         return True
 
@@ -166,6 +166,7 @@ class ES_locations():
         self.index = config.location_index
         self.header = config.header
         self.es = config.es
+        self.s = requests.Session()
 
     def insert_location(self, code, link, city, empty):
         location = {
@@ -179,7 +180,7 @@ class ES_locations():
         without_accents = unicodedata.normalize('NFKD', city).encode('ASCII', 'ignore').decode('utf-8').lower()
         index = f"{without_accents}-{code}"
 
-        r = requests.post(
+        r = self.s.post(
             url=self.url + self.index + f"/_doc/{index}",
             data=json.dumps(location),
             headers=self.header
@@ -190,7 +191,7 @@ class ES_locations():
             app.logger.info(f"Failed to insert location {city}, {code}: status code: {r.status_code}, {r.text}")
 
     def delete_index(self):
-        r = requests.delete(
+        r = self.s.delete(
             url=self.url + f'{self.index}'
         )
 
@@ -232,3 +233,5 @@ class ES_locations():
 
         return location
 
+config = ES_config()
+location = ES_locations(config)

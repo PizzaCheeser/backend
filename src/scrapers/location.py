@@ -4,6 +4,7 @@ import re
 from database.base import location
 from app import app
 from exceptions.scraperExceptions import UnexpectedWebsiteResponse
+import time
 
 
 class LocationScraper():
@@ -11,6 +12,7 @@ class LocationScraper():
         self.url = scraper_config.url
         self.redirection = scraper_config.redirection
         self.scraper_config=scraper_config
+
 
     def __no_restaurant(self, text):
         soup = BeautifulSoup(text, 'html.parser')
@@ -62,7 +64,11 @@ class LocationScraper():
 
         return result
 
+    #TODO: move to base class
+    global time_list
+    time_list=list()
     def scrape_locations(self, url=None):
+        start_time = time.time()
         if not url:
             url = self.url + self.redirection
         links = self.__get_delarea_links(url)
@@ -70,7 +76,7 @@ class LocationScraper():
         if not links:
             details = self.__find_details(url)
 
-            app.logger.info(details)
+            #app.logger.info(details)
 
             location.insert_location(
                 code=details['postcode'],
@@ -81,8 +87,13 @@ class LocationScraper():
         else:
             for i in links:
                 self.scrape_locations(self.url + i[1:])
+        time_list.append(time.time() - start_time)
+        if len(time_list) == 100:
+            print(sum(time_list))
 
 
+from scrapers.base_scraper import ScraperBase
 
-
-
+scraper_settings = ScraperBase()
+obj = LocationScraper(scraper_settings)
+obj.scrape_locations()

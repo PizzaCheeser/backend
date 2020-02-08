@@ -70,7 +70,6 @@ class PizzeriasScraper():
 
         return pizzerias_list
 
-
     def get_pizzeria_data(self, url, postcode, city, name):
         soup = self.scraper_config.get_soup(url)
         pizzeria_id = url.split('/')[-1] #TODO: change this
@@ -86,19 +85,7 @@ class PizzeriasScraper():
         }
         return pizzeria
 
-    def insert_pizzerias(self, loc):
-        all_pizzerias = self.get_all_pizzerias(loc['link'])
-        for pizzeria in all_pizzerias:
-            data = self.get_pizzeria_data(
-                    url=self.url+pizzeria['endpoint'],
-                    postcode=loc['postcode'],
-                    city=loc['city'],
-                    name=pizzeria['restaurant_name']
-                )
     def get_pizzas(self):
-        pass
-
-    def insert_pizzas(self):
         pass
 
 
