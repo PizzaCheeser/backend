@@ -74,7 +74,7 @@ class ES_pizzerias():
         else:
             app.logger.info(f"Failed to remove pizzerias index: status code: {r.status_code}, {r.text}")
 
-    def insert_pizzeria(self, data, pizza_list):
+    def insert_pizzeria(self, data):
 
         pizzeria_id = data.pop('pizzeria_id')
         opening_hours = json.dumps(data.pop('opening_hours'))
@@ -101,20 +101,7 @@ class ES_pizzerias():
         else:
             app.logger.info(f"Failed to insert pizzeria {pizzeria_id}: status code: {r.status_code}, {r.text}")
 
-    def insert_pizza(self, pizzeria_name, pizza_name, pizzas_list):
-
-        r = requests.post(
-            url=self.url + self.pizzerias_id + f"/_update/{pizzeria_name}",
-            data=json.dumps({"pizza": pizzas_list}),
-            headers=self.header
-        )
-
-        if r.status_code == 201 or r.status_code == 200:
-            app.logger.info(f"Succesfully inserted pizzas")
-        else:
-            app.logger.info(f"Failed to insert pizzas status code: {r.status_code}, {r.text}")
-
-    def insert_pizza2(self,pizzeria_id, pizza):
+    def insert_pizza(self,pizzeria_id, pizza):
         re = self.url + self.pizzerias_id + f'/_update/{pizzeria_id}/'
         body = {
                   "script": {
@@ -131,8 +118,12 @@ class ES_pizzerias():
             headers=self.header
         )
 
-        print("RESULT:", r.status_code)
-
+        if r.status_code == 200 or r.status_code == 201:
+            app.logger.info(f"Pizza {pizza['name']} was added")
+            return True
+        else:
+            app.logger.info(f"Pizza {pizza['name']} wasn't added")
+            return False
 
     def check_if_exists(self, pizzeria_id):
         r = requests.get(
@@ -146,7 +137,6 @@ class ES_pizzerias():
         else:
             app.logger.info(f"Pizzeria {pizzeria_id} doesn't exists")
             return False
-
 
     def update_postcode(self, pizzeria_id, postcode):
         #TODO: how to not update if already exists?

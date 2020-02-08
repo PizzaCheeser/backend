@@ -36,9 +36,7 @@ class ScraperDatabaseConnector():
 
     def main(self):
         locations_list = self.location.get_location(city="Wrocław", empty=False)
-        print("1")
         for loc in locations_list:
-            print("2")
             all_pizzerias = self.restaurantScraper.get_all_pizzerias(loc['link'])
             for pizzeria in all_pizzerias:
                 pizzeria_id = pizzeria['endpoint'].split('/')[-1]
@@ -46,21 +44,17 @@ class ScraperDatabaseConnector():
                     self.pizzerias.update_postcode(pizzeria_id, loc['postcode'])
                     if not self.pizzerias.recently_retrieved(pizzeria_id):
                         continue
+                url = self.restaurantScraper.url + pizzeria['endpoint']
                 data = self.restaurantScraper.get_pizzeria_data(
-                    url=self.restaurantScraper.url + pizzeria['endpoint'],  # TODO: pizzeria_id should be passed here
+                    url=url,  # TODO: pizzeria_id should be passed here
                     postcode=loc['postcode'],
                     city=loc['city'],
                     name=pizzeria['restaurant_name']
                 )
-                pizzas_list = self.restaurantScraper.get_pizzas(
-                    url=self.restaurantScraper.url + pizzeria['endpoint']
-                )
 
-                self.pizzerias.insert_pizzeria(data, pizzas_list)
-
-                for pizza in self.restaurantScraper.get_pizza1(self.restaurantScraper.url + pizzeria['endpoint']):
-                    print("PIZZA:", pizza)
-                    self.pizzerias.insert_pizza2(pizzeria_id, pizza)
+                self.pizzerias.insert_pizzeria(data)
+                for pizza in self.restaurantScraper.get_pizza(url):
+                    self.pizzerias.insert_pizza(pizzeria_id, pizza)
 
 
 

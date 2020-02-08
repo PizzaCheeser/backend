@@ -113,77 +113,24 @@ class PizzeriasScraper():
 
         return size_price_list
 
-    '''
-    def get_pizzas(self, url):
+    def get_pizza(self, url):
         soup = self.scraper_config.get_soup(url)
         dinners = soup.find_all('div', class_=re.compile(r'meal-container js-meal-container js-meal-search-*'))
-        pizzas_list = list()
         for dinner in dinners:
-            general_meal_list = dinner.find_all('span', {'class': 'meal-name'})
-            #print(general_meal_list, '\n\n\n')
-            pizza_ingredients = dinner.find_all('div', {
-                'class': 'meal__description-additional-info'})
-            pizza_description = dinner.find('div', {'class': 'meal__description-choose-from'})
-            #print(pizza_description)
-            if pizza_description:  # TODO: on this way we're getting only pizzas which description
-                size_price = self.get_price(dinner)
-                for general_meals in general_meal_list:
-                    meal_list = general_meals.find_all('span')
-                    for meal in meal_list:
-                        if meal.text.startswith('Pizza'):
-                            pizzas_list.append(
-                                {'name': meal.text, 'ingredients': pizza_ingredients[0].text, #ingredients_preprocessing(pizza_ingredients),
-                                 'size_price': size_price})
-        return pizzas_list
-        
-        
-    '''
-    def get_pizza1(self,url):
-        soup = self.scraper_config.get_soup(url)
-        dinners = soup.find_all('div', class_=re.compile(r'meal-container js-meal-container js-meal-search-*'))
-        pizzas_list = list()
-        for dinner in dinners:
-            general_meal_list = dinner.find('span', {'class': 'meal-name'}).find('span').text
-            if general_meal_list.startswith('Pizza'):
-                pizza_ingredients = dinner.find('div', {
-                    'class': 'meal__description-additional-info'})
-                pizza_description = dinner.find('div', {'class': 'meal__description-choose-from'})
-                if pizza_description:
-                    size_price = self.get_price(dinner)
-                    pizza={'name': general_meal_list, 'ingredients': pizza_ingredients.text,
-                         'size_price': size_price}
-                    yield pizza
+            general_meal_list = dinner.find('span', {'class': 'meal-name'}).find('span')
+            if general_meal_list:
+                meal = general_meal_list.text
 
-    def get_pizzas1(self, url):
-        start_time = time.time()
-
-        pizza_list=list()
-        for pizza in self.get_pizza1(url):
-            pizza_list.append(pizza)
-        print(pizza_list)
-        print("--- %s seconds ---" % (time.time() - start_time))
-
-
-    def get_pizzas(self, url):
-        soup = self.scraper_config.get_soup(url)
-        dinners = soup.find_all('div', class_=re.compile(r'meal-container js-meal-container js-meal-search-*'))
-        pizzas_list = list()
-        for dinner in dinners:
-            if dinner.find('span', {'class': 'meal-name'}).find('span'):
-                general_meal_list = dinner.find('span', {'class': 'meal-name'}).find('span').text
-                if general_meal_list.startswith('Pizza'):
+                if meal.startswith('Pizza'):
                     pizza_ingredients = dinner.find('div', {
                         'class': 'meal__description-additional-info'})
                     pizza_description = dinner.find('div', {'class': 'meal__description-choose-from'})
                     if pizza_description and pizza_ingredients:
                         size_price = self.get_price(dinner)
-                        pizzas_list.append(
-                            {'name': general_meal_list, 'ingredients': pizza_ingredients.text,
+                        pizza={'name': meal, 'ingredients': pizza_ingredients.text,
                              'size_price': size_price}
-                        )
-                    else:
-                        pass
-        return pizzas_list
+                        yield pizza
+
 
 
 
