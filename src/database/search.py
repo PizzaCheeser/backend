@@ -19,17 +19,20 @@ class ES_search():
         return hits
 
     def search_all_ingredients(self):
-
         query = {
                 "aggs": {
                     "all_ingredients": {
+
                         "nested": {
                             "path": "pizza"
                         },
                         "aggs": {
-                            "all_ingredients": {"terms": {"field": "pizza.ingredients.keyword"}}
+                            "all_ingredients": {"terms": {"field": "pizza.validated_ingredients.keyword",
+                                                          "size": 2147483647,
+                            }}
                         }
-                    }
+                    },
+
                 }
             }
 
@@ -40,12 +43,10 @@ class ES_search():
             )
         except Exception as e:
             raise SearchException("Get all ingredients failed") from e
-
         try:
             all_ingredients = [key['key'] for key in res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
         except Exception as e:
             raise SearchException("Getting all ingredients from query result failed") from e
-
         return all_ingredients
 
     def __query_search_via_ingredients(self, wanted, not_acceptable):

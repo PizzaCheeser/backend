@@ -100,7 +100,11 @@ class ES_pizzerias():
         else:
             app.logger.info(f"Failed to insert pizzeria {pizzeria_id}: status code: {r.status_code}, {r.text}")
 
+    def insert_validated_ingredients(self, pizzeria_id, pizza, ingredients):
+        pass
+
     def insert_pizza(self, pizzeria_id, pizza):
+
         url = self.url + self.pizzerias_id + f'/_update/{pizzeria_id}/'
         body = {
                   "script": {
