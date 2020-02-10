@@ -12,5 +12,5 @@ RUN pip install -r requirements.txt
 
 WORKDIR /opt/bin/backend/src
 
-CMD ["python3", "app.py"]
+CMD ["python3", "main.py"]
 

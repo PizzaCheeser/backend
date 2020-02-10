@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import re
-from app import app
+from app.app import app
 from exceptions.scraperExceptions import UnexpectedWebsiteResponse
 
 

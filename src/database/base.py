@@ -1,7 +1,9 @@
 import requests
 import json
 from elasticsearch import Elasticsearch
-from app import app
+from app.app import app
+
+
 import time
 import unicodedata
 
@@ -12,11 +14,21 @@ import unicodedata
 
 
 class ES_config():
-    def __init__(self, host=app.config['HOST'],
-                 pizzerias_id=app.config['ES_PIZZERIAS_ID'],
-                 port=app.config['ES_PORT'],
-                 location=app.config['ES_LOCATION_ID'],
+    def __init__(self, host=None,
+                 pizzerias_id=None,
+                 port=None,
+                 location=None
                  ):
+        if not host:
+            host=app.config['HOST']
+        if not pizzerias_id:
+            pizzerias_id=app.config['ES_PIZZERIAS_ID']
+        if not port:
+            port=app.config['ES_PORT']
+        if not location:
+            location=app.config['ES_LOCATION_ID']
+
+
         self.url = f"http://{host}:{port}/"
         self.port = port
         self.pizzerias_id = pizzerias_id
@@ -122,7 +134,7 @@ class ES_pizzerias():
         )
 
         if r.status_code == 200 or r.status_code == 201:
-            app.logger.info(f"Pizza {pizza['name']} was added")
+            #app.logger.info(f"Pizza {pizza['name']} was added")
             return True
         else:
             app.logger.info(f"Pizza {pizza['name']} wasn't added")

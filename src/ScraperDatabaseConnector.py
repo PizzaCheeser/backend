@@ -1,11 +1,10 @@
-from database.base import ES_config, ES_locations, ES_pizzerias
 from database.search import ES_search
 from scrapers.location import LocationScraper
 from scrapers.base_scraper import ScraperBase
 from scrapers.restaurants import PizzeriasScraper
 from utility.validator import Validator
-from fuzzywuzzy import fuzz
-
+from database.base import ES_config, ES_locations, ES_pizzerias
+from app.app import app
 
 class ScraperDatabaseConnector():
     def __init__(self):
@@ -18,9 +17,6 @@ class ScraperDatabaseConnector():
         self.pizzerias = ES_pizzerias(ES_settings)
         self.search = ES_search(ES_settings)
         self.validator = Validator()
-
-
-
 
     def scrape_locations(self, url=None):
         if not url:
@@ -50,7 +46,7 @@ class ScraperDatabaseConnector():
                 pizzeria_id = pizzeria['endpoint'].split('/')[-1]
                 if self.pizzerias.check_if_exists(pizzeria_id):
                     self.pizzerias.update_postcode(pizzeria_id, loc['postcode'])
-                    if not self.pizzerias.recently_retrieved(pizzeria_id):
+                    if self.pizzerias.recently_retrieved(pizzeria_id):
                         continue
                 url = self.restaurantScraper.url + pizzeria['endpoint']
                 data = self.restaurantScraper.get_pizzeria_data(
@@ -69,10 +65,11 @@ class ScraperDatabaseConnector():
                     #self.pizzerias.insert_validated(pizzeria_id, pizza, validated_ingredients)
 
 
+if __name__ == '__main__':
+    app.config.from_object('app.config')
 
-
-connector = ScraperDatabaseConnector()
-#connector.scrape_locations(url='https://www.pyszne.pl/restauracja-krakow-krakow-srodmiescie')
-connector.main()
-#connector.pizza_validator()
+    connector = ScraperDatabaseConnector()
+    #connector.scrape_locations(url='https://www.pyszne.pl/restauracja-krakow-krakow-srodmiescie')
+    connector.main()
+    #connector.pizza_validator()
 

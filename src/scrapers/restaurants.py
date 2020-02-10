@@ -1,4 +1,5 @@
-from app import app
+#from __init__ import app
+from app.app import app
 from exceptions.scraperExceptions import UnexpectedWebsiteResponse
 import json
 import requests
@@ -9,6 +10,7 @@ class PizzeriasScraper():
     def __init__(self, scraper_config):
         self.url = scraper_config.url
         self.scraper_config=scraper_config
+        self.session = requests.session()
 
     def __get_restaurant_name(self, soup):
         name = soup.find_all('div', 'restaurant-name')
@@ -22,7 +24,9 @@ class PizzeriasScraper():
         if len(address) == 1:
             return address[0].text.strip()
         else:
-            raise UnexpectedWebsiteResponse("section card-body doesn't exist")
+            app.logger.warning("section card-body doesn't exist")
+            return "no information"
+            #raise UnexpectedWebsiteResponse("section card-body doesn't exist")
 
     def __get_opening_hours(self,soup):
         info = soup.find_all('div', 'info-tab-section')
@@ -88,7 +92,6 @@ class PizzeriasScraper():
         }
         return pizzeria
 
-
     def get_price(self, dinner):
 
         if len(dinner.find_all('div', {'class': 'meal-json'})) == 1:
@@ -96,13 +99,33 @@ class PizzeriasScraper():
         else:
             raise UnexpectedWebsiteResponse("div class meal-json returns no product or more than one")
 
-        r = requests.get(
+        r = self.session.get(
             url='https://www.pyszne.pl/xHttp/product/side-dishes',
             params=params
         )
-
-        json_data = json.loads(re.search('(?<="json":)(.*)(?=})', r.text).group(0))
         size_price_list = list()
+        try:
+            json_data = json.loads(re.search('(?<="json":)(.*)(?=})', r.text).group(0))
+
+        except:
+            data = size_price_list.append(
+                {
+                    'size': "No data",
+                    'price': "No data"
+                }
+            )
+            return data
+
+
+
+        if not json_data:
+            size_price_list.append(
+                {
+                    'size': "No data",
+                    'price': "No data"
+                }
+            )
+
         for i in json_data:
             size_price_list.append(
                 {
