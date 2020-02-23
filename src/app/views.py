@@ -1,10 +1,10 @@
-from flask import Flask, request, Response
-import logging
-from flask_cors import CORS
-from database.search import ES_search
-from database.base import ES_config
 import json
+
+from flask import request, Response
+
 from app.app import app
+from app.database.search import ES_search
+from app.database.base import ES_config
 
 
 @app.route('/api/all_ingredients', methods=['GET'])
@@ -27,6 +27,5 @@ def ingredients_choice():
         must = ingredients['must']
         must_not = ingredients['must_not']
         result = search.search_via_ingredients_postcode(must, must_not, code=None)
-        #result = search_via_ingredients(must, must_not)
         return Response(headers={"Access-Control-Allow-Origin": '*'}, response=json.dumps(result), status=200)
 

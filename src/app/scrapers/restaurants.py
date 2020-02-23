@@ -1,9 +1,9 @@
-#from __init__ import app
-from app.app import app
-from exceptions.scraperExceptions import UnexpectedWebsiteResponse
 import json
 import requests
 import re
+
+from app.app import app
+from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 
 
 class PizzeriasScraper():

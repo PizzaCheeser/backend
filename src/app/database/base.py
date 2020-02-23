@@ -1,11 +1,12 @@
 import requests
 import json
-from elasticsearch import Elasticsearch
-from app.app import app
-
-
 import time
 import unicodedata
+
+from app.app import app
+from elasticsearch import Elasticsearch
+
+
 
 # TODO: finish logs
 # TODO: do exceptions
@@ -30,6 +31,7 @@ class ES_config():
 
 
         self.url = f"http://{host}:{port}/"
+        print(self.url)
         self.port = port
         self.pizzerias_id = pizzerias_id
         self.location_index=location

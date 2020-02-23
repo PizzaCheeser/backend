@@ -1,9 +1,9 @@
-from database.search import ES_search
-from scrapers.location import LocationScraper
-from scrapers.base_scraper import ScraperBase
-from scrapers.restaurants import PizzeriasScraper
-from utility.validator import Validator
-from database.base import ES_config, ES_locations, ES_pizzerias
+from app.database.search import ES_search
+from app.scrapers.location import LocationScraper
+from app.scrapers.base_scraper import ScraperBase
+from app.scrapers.restaurants import PizzeriasScraper
+from app.utility.validator import Validator
+from app.database.base import ES_config, ES_locations, ES_pizzerias
 from app.app import app
 
 class ScraperDatabaseConnector():
@@ -66,10 +66,8 @@ class ScraperDatabaseConnector():
 
 
 if __name__ == '__main__':
-    app.config.from_object('app.config')
+    app.config.from_object('config')
 
     connector = ScraperDatabaseConnector()
     #connector.scrape_locations(url='https://www.pyszne.pl/restauracja-krakow-krakow-srodmiescie')
     connector.main()
-    #connector.pizza_validator()
-

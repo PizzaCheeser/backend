@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import re
 from app.app import app
-from exceptions.scraperExceptions import UnexpectedWebsiteResponse
+from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 
 
 class LocationScraper():

@@ -1,5 +1,5 @@
-from database.search import ES_search
-from database.base import ES_config
+from app.database.search import ES_search
+from app.database.base import ES_config
 from fuzzywuzzy import fuzz
 
 
