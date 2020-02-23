@@ -5,13 +5,14 @@ from app.app import app
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 
 
-class LocationScraper():
+class LocationScraper:
     def __init__(self, scraper_config):
         self.url = scraper_config.url
         self.redirection = scraper_config.redirection
         self.scraper_config = scraper_config
 
-    def __no_restaurant(self, text):
+    @staticmethod
+    def __no_restaurant(text):
         soup = BeautifulSoup(text, 'html.parser')
         no_restaurant = soup.find_all('div', 'norestaurant')
         if no_restaurant:

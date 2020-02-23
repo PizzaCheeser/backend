@@ -7,31 +7,22 @@ from app.app import app
 from elasticsearch import Elasticsearch
 
 
-
-# TODO: finish logs
-# TODO: do exceptions
-# TODO: merge pizzas with pizzerias in search function
-# TODO: pizza -> pizzas, refactor pizzerias_id name
-
-
-class ES_config():
+class ES_config:
     def __init__(self, host=None,
                  pizzerias_id=None,
                  port=None,
                  location=None
                  ):
         if not host:
-            host=app.config['HOST']
+            host = app.config['HOST']
         if not pizzerias_id:
-            pizzerias_id=app.config['ES_PIZZERIAS_ID']
+            pizzerias_id = app.config['ES_PIZZERIAS_ID']
         if not port:
-            port=app.config['ES_PORT']
+            port = app.config['ES_PORT']
         if not location:
-            location=app.config['ES_LOCATION_ID']
-
+            location = app.config['ES_LOCATION_ID']
 
         self.url = f"http://{host}:{port}/"
-        print(self.url)
         self.port = port
         self.pizzerias_id = pizzerias_id
         self.location_index=location
@@ -44,12 +35,15 @@ class ES_config():
         )
 
         if r.status_code == 200:
-            app.logger.info("Succesfully removed database")
+            app.logger.info("Successfully removed database")
         else:
-            app.logger.info(f"Failed to remove database: status code: {r.status_code}, {r.text}")
+            app.logger.error(f"Failed to remove database: status code: {r.status_code}, {r.text}")
 
 
-class ES_pizzerias():
+class ES_pizzerias:
+    '''
+    Class responsible for updating and inserting pizzerias and pizzas data into the database
+    '''
 
     def __init__(self, config):
         self.url = config.url
@@ -73,7 +67,7 @@ class ES_pizzerias():
         )
 
         if r.status_code == 200:
-            app.logger.info("Succesfully created database")
+            app.logger.info("Successfully created database")
         else:
             app.logger.error(f"Error during database creation, status code: {r.status_code}, {r.text}")
 
@@ -83,9 +77,9 @@ class ES_pizzerias():
         )
 
         if r.status_code == 200:
-            app.logger.info("Succesfully removed pizzerias index")
+            app.logger.info("Successfully removed pizzerias index")
         else:
-            app.logger.info(f"Failed to remove pizzerias index: status code: {r.status_code}, {r.text}")
+            app.logger.error(f"Failed to remove pizzerias index: status code: {r.status_code}, {r.text}")
 
     def insert_pizzeria(self, data):
 
@@ -110,12 +104,9 @@ class ES_pizzerias():
             headers=self.header
         )
         if r.status_code == 200 or r.status_code == 201:
-            app.logger.info(f"Succesfully inserted pizzeria {pizzeria_id}")
+            app.logger.info(f"Successfully inserted pizzeria {pizzeria_id}")
         else:
-            app.logger.info(f"Failed to insert pizzeria {pizzeria_id}: status code: {r.status_code}, {r.text}")
-
-    def insert_validated_ingredients(self, pizzeria_id, pizza, ingredients):
-        pass
+            app.logger.error(f"Failed to insert pizzeria {pizzeria_id}: status code: {r.status_code}, {r.text}")
 
     def insert_pizza(self, pizzeria_id, pizza):
 
@@ -136,10 +127,9 @@ class ES_pizzerias():
         )
 
         if r.status_code == 200 or r.status_code == 201:
-            #app.logger.info(f"Pizza {pizza['name']} was added")
             return True
         else:
-            app.logger.info(f"Pizza {pizza['name']} wasn't added")
+            app.logger.warning(f"Pizza {pizza['name']} wasn't added")
             return False
 
     def check_if_exists(self, pizzeria_id):
@@ -156,7 +146,9 @@ class ES_pizzerias():
             return False
 
     def update_postcode(self, pizzeria_id, postcode):
+
         #TODO: how to not update if already exists?
+
         data = {
             "script":
                 {"source": "ctx._source.delivery_postcodes.add(params.delivery_postcodes)",
@@ -170,14 +162,19 @@ class ES_pizzerias():
         if r.status_code == 200 or r.status_code == 201:
             app.logger.info(f"Updated {pizzeria_id} with postcode {postcode}")
         else:
-            app.logger.info(f"Not updated {pizzeria_id} with postcode {postcode}")
+            app.logger.warrning(f"Not updated {pizzeria_id} with postcode {postcode}")
 
     def recently_retrieved(self, pizzeria_id):
-        #TODO: implement this!
+        #TODO: check pizzeria timestamp
+        #TODO: check if the timestamp is older than 1 day
+        # if so, return False
         return True
 
 
-class ES_locations():
+class ES_locations:
+    '''
+    Class responsible for inserting pizzerias locations into the database
+    '''
 
     def __init__(self, config):
         self.url = config.url
@@ -204,9 +201,9 @@ class ES_locations():
             headers=self.header
         )
         if r.status_code == 200 or r.status_code == 201:
-            app.logger.info(f"Succesfully inserted location {city}, {code}")
+            app.logger.info(f"Successfully inserted location {city}, {code}")
         else:
-            app.logger.info(f"Failed to insert location {city}, {code}: status code: {r.status_code}, {r.text}")
+            app.logger.error(f"Failed to insert location {city}, {code}: status code: {r.status_code}, {r.text}")
 
     def delete_index(self):
         r = self.session.delete(
@@ -214,9 +211,9 @@ class ES_locations():
         )
 
         if r.status_code == 200:
-            app.logger.info("Succesfully removed locations index")
+            app.logger.info("Successfully removed locations index")
         else:
-            app.logger.info(f"Failed to remove locations index: status code: {r.status_code}, {r.text}")
+            app.logger.error(f"Failed to remove locations index: status code: {r.status_code}, {r.text}")
 
     def get_location(self, empty=False, city=None, postcode=None):
         query = [
@@ -224,9 +221,9 @@ class ES_locations():
         ]
 
         if city:
-            query.append({"match":{"city":city}})
+            query.append({"match": {"city": city}})
         if postcode:
-            query.append({"match":{"post-code.keyword": postcode}})
+            query.append({"match": {"post-code.keyword": postcode}})
 
         full_query = {
                 "query": {

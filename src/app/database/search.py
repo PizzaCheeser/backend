@@ -1,7 +1,11 @@
 from app.exceptions.exceptions import SearchException
 
 
-class ES_search():
+class ES_search:
+    '''
+    Class responsible for searching in the database
+    '''
+
     def __init__(self, config):
         self.url = config.url
         self.pizzerias_id = config.pizzerias_id
@@ -49,15 +53,15 @@ class ES_search():
             raise SearchException("Getting all ingredients from query result failed") from e
         return all_ingredients
 
-    def __query_search_via_ingredients(self, wanted, not_acceptable):
-
+    @staticmethod
+    def __query_search_via_ingredients(wanted, not_acceptable):
         def query_from_list(l_ingredients):
-            query = [{'match': {'pizza.validated_ingredients': {"query": x, "fuzziness": "AUTO", "operator": "AND"}}} for x in
-                     l_ingredients]
-            return query
+            query = [
+                {'match': {'pizza.validated_ingredients': {"query": x, "fuzziness": "AUTO", "operator": "AND"}}}
+                for x in l_ingredients
+            ]
 
-        #if not wanted or not not_acceptable:
-        #    return None
+            return query
 
         full_query = {
                         "nested": {
@@ -76,36 +80,27 @@ class ES_search():
 
         return full_query
 
-    def __query_search_via_postcode(self, code=None):
+    @staticmethod
+    def __query_search_via_postcode(code=None):
         if not code:
             return None
         else:
             query = {"match": {"delivery_postcodes.keyword": code}}
         return query
 
-    '''
-    def get_pizzas(self, res):
-        pizzas_list = list()
-        if len(res) > 0:
-            for i in res['hits']['hits']:
-                pizzas_list.extend(i['inner_hits']['pizza']['hits']['hits'])
-        else:
-            pizzas_list=list()
-
-        return pizzas_list
-    '''
-    def get_pizzeria_details(self):
-        pass
-
-    def search_via_ingredients_postcode(self, wanted, not_acceptable, code="30-122"):
+    def search_via_ingredients_postcode(self, wanted, not_acceptable, code):
+        '''
+        Find all ingredients in the specific location
+        '''
+        # TODO: merge pizzas with pizzerias in search function to return link to order pizza
 
         if not wanted:
             wanted = []
         if not not_acceptable:
             not_acceptable = []
 
-        ingredients_query=self.__query_search_via_ingredients(wanted, not_acceptable)
-        postcode_query=self.__query_search_via_postcode(code)
+        ingredients_query = self.__query_search_via_ingredients(wanted, not_acceptable)
+        postcode_query = self.__query_search_via_postcode(code)
         bool_query = dict()
         if ingredients_query:
             bool_query.update({'must': ingredients_query})

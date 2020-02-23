@@ -6,36 +6,49 @@ from app.app import app
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 
 
-class PizzeriasScraper():
+class PizzeriasScraper:
+    '''
+    Class responsible for scraping data from the website
+    '''
+
     def __init__(self, scraper_config):
         self.url = scraper_config.url
-        self.scraper_config=scraper_config
+        self.scraper_config = scraper_config
         self.session = requests.session()
 
-    def __get_restaurant_name(self, soup):
+    @staticmethod
+    def __get_restaurant_name(soup):
         name = soup.find_all('div', 'restaurant-name')
         if len(name) == 1:
             return name[0].text
         else:
             raise UnexpectedWebsiteResponse("div: restaurant-name doesn't exist")
 
-    def __get_address(self, soup):
+    @staticmethod
+    def __get_address(soup):
         address = soup.find_all('section', 'card-body')
         if len(address) == 1:
             return address[0].text.strip()
         else:
             app.logger.warning("section card-body doesn't exist")
             return "no information"
-            #raise UnexpectedWebsiteResponse("section card-body doesn't exist")
 
-    def __get_opening_hours(self,soup):
+    @staticmethod
+    def __get_opening_hours(soup):
         info = soup.find_all('div', 'info-tab-section')
         opening_hours = dict()
         if len(info) < 1:
             app.logger.warning("List of information is too short, opening hours not added")
             return opening_hours
 
-        trs = info[0].find('table').find_all("tr")
+        table = info[0].find('table')
+
+        if not table:
+            app.logger.warning("Table doesn't exist, opening hours not added")
+            return opening_hours
+
+        trs = table.find_all("tr")
+
         if not trs:
             app.logger.warning("List of trs doesn't exist, opening hours not added")
             return opening_hours
@@ -43,16 +56,16 @@ class PizzeriasScraper():
         for tr in trs:
             td = tr.find_all("td")
             if len(td) != 2:
-                print("asdasdfsafd")
+                app.logger.warning("Incorrect td len, opening hours not added")
 
-            opening_hours.update({td[0].text.strip():td[1].text.strip()})
+            opening_hours.update({td[0].text.strip(): td[1].text.strip()})
 
         return opening_hours
 
     def get_all_pizzerias(self, location_url):
         url = location_url
         soup = self.scraper_config.get_soup(url)
-        pizzerias_list=list()
+        pizzerias_list = list()
 
         detailswrapper = soup.find_all('div', 'detailswrapper')
 
@@ -66,14 +79,18 @@ class PizzeriasScraper():
 
             if len(href) > 1:
                 app.logger.warning(
-                    f"find all hrefs for {url} returned more hrefs than expected {restaurant_name}")
+                    f"find all hrefs for {url} returned more hrefs than expected {restaurant_name}"
+                )
             if len(restaurant_name) > 1:
-                app.logger.warning(f"find all restaurantname for {url} returned more restaurant names {restaurant_name}")
+                app.logger.warning(
+                    f"find all restaurantname for {url} returned more restaurant names {restaurant_name}"
+                )
             if len(kitchens) > 1:
                 app.logger.warning(
-                    f"find all kitchens for {url} returned more result then expected {kitchens}")
+                    f"find all kitchens for {url} returned more result then expected {kitchens}"
+                )
             if "Pizza" in kitchens[0].text:
-                pizzerias_list.append({"restaurant_name":restaurant_name[0].text.strip(), "endpoint":href[0]['href']})
+                pizzerias_list.append({"restaurant_name": restaurant_name[0].text.strip(), "endpoint": href[0]['href']})
 
         return pizzerias_list
 
@@ -104,10 +121,10 @@ class PizzeriasScraper():
             params=params
         )
         size_price_list = list()
+
         try:
             json_data = json.loads(re.search('(?<="json":)(.*)(?=})', r.text).group(0))
-
-        except:
+        except Exception as e:
             data = size_price_list.append(
                 {
                     'size': "No data",
@@ -116,8 +133,6 @@ class PizzeriasScraper():
             )
             return data
 
-
-
         if not json_data:
             size_price_list.append(
                 {
@@ -125,14 +140,14 @@ class PizzeriasScraper():
                     'price': "No data"
                 }
             )
-
-        for i in json_data:
-            size_price_list.append(
-                {
-                    'size': i['name'],
-                    'price': i['price']
-                }
-            )
+        else:
+            for i in json_data:
+                size_price_list.append(
+                    {
+                        'size': i['name'],
+                        'price': i['price']
+                    }
+                )
 
         return size_price_list
 
@@ -150,8 +165,10 @@ class PizzeriasScraper():
                     pizza_description = dinner.find('div', {'class': 'meal__description-choose-from'})
                     if pizza_description and pizza_ingredients:
                         size_price = self.get_price(dinner)
-                        pizza={'name': meal, 'ingredients': pizza_ingredients.text,
-                             'size_price': size_price}
+                        pizza = {
+                            'name': meal, 'ingredients': pizza_ingredients.text,
+                            'size_price': size_price
+                        }
                         yield pizza
 
 

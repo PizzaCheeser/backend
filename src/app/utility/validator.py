@@ -3,14 +3,15 @@ from app.database.base import ES_config
 from fuzzywuzzy import fuzz
 
 
-
-class Validator():
+class Validator:
     def __init__(self):
-        ES_settings = ES_config()
-        self.search = ES_search(ES_settings)
+        es_settings = ES_config()
+        self.search = ES_search(es_settings)
 
+    @staticmethod
+    def improved_fuzzy(first_ing, scnd_ing):
+        # TODO: this should be keept in the database
 
-    def improved_fuzzy(self, first_ing, scnd_ing):
         if first_ing in ["z boczkiem", "boczek", "boczkiem"] and scnd_ing in ["z boczkiem", "boczek", "boczkiem"]:
             ratio = 100
         if first_ing in ["czerwona cebula", "cebula czerwona"] and scnd_ing in ["czerwona cebula", "cebula czerwona"]:
@@ -43,9 +44,9 @@ class Validator():
         all_ingredients = self.search.search_all_ingredients()
 
         pizza_orginal_ingredients = pizza['ingredients']
-        list_orginal_ingredients = pizza_orginal_ingredients.replace(' oraz ', ',').replace(' i ', ',').replace('z ',
-                                                                                                                '').lower().split(
-            ',')
+        list_orginal_ingredients = pizza_orginal_ingredients.replace(
+            ' oraz ', ','
+        ).replace(' i ', ',').replace('z ','').lower().split(',')
         ingredients_list = [word.strip() for word in list_orginal_ingredients]
         validated_ingredients = list()
 
