@@ -39,18 +39,6 @@ class ES_config:
         else:
             app.logger.error(f"Failed to remove database: status code: {r.status_code}, {r.text}")
 
-
-class ES_pizzerias:
-    '''
-    Class responsible for updating and inserting pizzerias and pizzas data into the database
-    '''
-
-    def __init__(self, config):
-        self.url = config.url
-        self.pizzerias_id = config.pizzerias_id
-        self.header = config.header
-        self.es = config.es
-
     def create_structure(self):
 
         query = {
@@ -70,6 +58,20 @@ class ES_pizzerias:
             app.logger.info("Successfully created database")
         else:
             app.logger.error(f"Error during database creation, status code: {r.status_code}, {r.text}")
+
+
+class ES_pizzerias:
+    '''
+    Class responsible for updating and inserting pizzerias and pizzas data into the database
+    '''
+
+    def __init__(self, config):
+        self.url = config.url
+        self.pizzerias_id = config.pizzerias_id
+        self.header = config.header
+        self.es = config.es
+
+
 
     def delete_index(self):
         r = requests.delete(
