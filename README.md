@@ -1,6 +1,9 @@
 # Pizza cheeser
 
-The project is available at: www.pizza-cheeser.psota.pl
+The project is available at: www.pizza-cheeser.psota.pl.
+You can also use slack app. 
+Use the command to find the pizza:
+`/pizza post-code;wanted ingredient 1,wanted ingredient 2,...;not wanted ingredient1, not wanted ingredient 2, ...`
 
 ### How does it work?
 Pizza cheeser can choose the perfect pizza for you and for your groups of friends.
@@ -39,6 +42,9 @@ Returns all ingredients from pizzas in JSON
 Returns all pizzas in particular location with `must` ingredients
 and without `must_not` ingredients.
 
+- `POST /slack/get-pizzas`
+used for slack integration
+
 ### Database structure
 - keyspace locations
 - keyspace pizzerias
@@ -47,6 +53,14 @@ TODO: add database structure
 
 ### How does it work
 TODO: how does it work
+
+### How to integrate with slack app:
+- Go to your slack app website in: `https://api.slack.com/apps/`
+- Add slash command
+- Create new command i.e `/pizza`
+- Set up a correct request URL (should be ended ) - you can use ngrok.io to expose the port 5000
+then copy forwarding URL and add `/slack/get-pizzas` at the end
+
 
 ### TODO in the future:
  - GET all_ingredients should sort ingredients via location
