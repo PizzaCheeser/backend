@@ -22,6 +22,54 @@ class ES_search:
         hits = all_results['hits']['hits']
         return hits
 
+    def search_ingredients_from_location(self, postcode):
+
+        query1 = {
+            "query":{
+                "bool":{
+                    "filter":{
+                        "term":{
+                            "delivery_postcodes.keyword": postcode
+                        }
+                    }
+                }
+            },
+            "aggs": {
+                "all_ingredients": {
+                    "nested": {
+                        "path": "pizza",
+                    },
+
+                    "aggs": {
+                        "all_ingredients": {"terms": {
+                            "field": "pizza.validated_ingredients.keyword",
+                            "size": 2147483647,
+                        },
+                        },
+                    }
+                },
+
+            }
+        }
+
+
+        #all_ingredients = [key['key'] for key in res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
+
+
+        try:
+            res = self.es.search(
+                index=self.pizzerias_id,
+                body=query1
+            )
+        except Exception as e:
+            raise SearchException("Get all ingredients failed") from e
+        try:
+            all_ingredients = [key['key'] for key in res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
+        except Exception as e:
+            raise SearchException("Getting all ingredients from query result failed") from e
+
+        return all_ingredients
+
     def search_all_ingredients(self):
         query = {
                 "aggs": {
@@ -92,7 +140,9 @@ class ES_search:
         '''
         Find all ingredients in the specific location
         '''
+        print("TEST")
         # TODO: merge pizzas with pizzerias in search function to return link to order pizza
+
 
         if not wanted:
             wanted = []
@@ -114,6 +164,8 @@ class ES_search:
                 "bool": bool_query
             }
         }
+
+        print("QUERY:", query)
 
         try:
             result = self.es.search(index="pizzerias", body=query)['hits']['hits']

@@ -7,15 +7,25 @@ from app.database.search import ES_search
 from app.database.base import ES_config
 
 
-@app.route('/api/all_ingredients', methods=['GET'])
+@app.route('/api/all_ingredients_old', methods=['GET'])
 def ingredients():
     es_settings = ES_config()
     search = ES_search(es_settings)
 
     if request.method == 'GET':
-        # TODO: search_all_ingredients should take postcode as parameter and sort by it
         ingredients = search.search_all_ingredients()
         return Response(headers={"Access-Control-Allow-Origin": '*'}, response=json.dumps(ingredients), status=200)
+
+
+@app.route('/api/all_ingredients/<postcode>', methods=['GET'])
+def ingredients_by_location(postcode):
+    es_settings = ES_config()
+    search = ES_search(es_settings)
+
+    if request.method == 'GET':
+        ingredients = search.search_ingredients_from_location(postcode)
+        return Response(headers={"Access-Control-Allow-Origin": '*'}, response=json.dumps(ingredients), status=200)
+
 
 
 @app.route('/api/choosen-ingredients', methods=['POST'])
