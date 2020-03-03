@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-
+from retry_requests import retry
 
 class ScraperBase():
     def __init__(self, country='PL'
@@ -12,7 +12,7 @@ class ScraperBase():
             self.url='https://www.lieferando.de/'
             self.redirection='lieferservice'
 
-        self.session = requests.Session()
+        self.session = retry(requests.Session(), retries=5, backoff_factor=0.2)
 
     def get_soup(self, url):
         source = self.session.get(url).text  # we're getting website text
