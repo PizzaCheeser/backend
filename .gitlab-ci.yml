@@ -34,6 +34,6 @@ deploy:
   script:
     - cd charts/backend-pizza-cheeser
     - helm dependency upgrade
-    - helm upgrade --install backend --timeout=3600s --namespace pizzacheeser .
+    - helm upgrade --install backend --timeout=3600s --namespace pizzacheeser --set image.tag="$CI_COMMIT_TAG" .
   only:
     - tags
