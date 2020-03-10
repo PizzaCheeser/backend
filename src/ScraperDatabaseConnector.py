@@ -83,7 +83,7 @@ if __name__ == '__main__':
     while True:
         try:
             #connector.scrape_locations(url='https://www.pyszne.pl/restauracja-krakow-krakow-srodmiescie')
-            connector.scrape_locations()
+            connector.scrape_locations(url='https://www.pyszne.pl/krakow')
         except UnexpectedWebsiteResponse as e:
             app.logger.error(e)
             continue
