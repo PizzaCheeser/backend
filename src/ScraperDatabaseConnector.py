@@ -82,9 +82,8 @@ if __name__ == '__main__':
     connector = ScraperDatabaseConnector()
     while True:
         try:
-            #connector.scrape_locations(url='https://www.pyszne.pl/restauracja-krakow-krakow-srodmiescie')
-            connector.scrape_locations(url='https://www.pyszne.pl/krakow')
+            #connector.scrape_locations(url='https://www.pyszne.pl/krakow')
+            connector.main() #TODO: add arg with city
         except UnexpectedWebsiteResponse as e:
             app.logger.error(e)
             continue
-        connector.main()
