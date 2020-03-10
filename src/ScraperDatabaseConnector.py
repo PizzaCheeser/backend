@@ -4,6 +4,7 @@ from app.scrapers.base_scraper import ScraperBase
 from app.scrapers.restaurants import PizzeriasScraper
 from app.utility.validator import Validator
 from app.database.base import ES_config, ES_locations, ES_pizzerias
+from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 from app.app import app
 
 
@@ -44,6 +45,7 @@ class ScraperDatabaseConnector():
             for link in links:
                 self.scrape_locations(self.location_scraper.url + link[1:])
 
+
     def main(self):
         '''
         Go through all locations with restaurants and scrape all pizzerias,
@@ -79,5 +81,9 @@ if __name__ == '__main__':
     app.config.from_object('config')
     connector = ScraperDatabaseConnector()
     while True:
-        connector.scrape_locations(url='https://www.pyszne.pl/restauracja-krakow-krakow-srodmiescie')
+        try:
+            connector.scrape_locations(url='https://www.pyszne.pl/restauracja-krakow-krakow-srodmiescie')
+        except UnexpectedWebsiteResponse as e:
+            app.logger.error(e)
+            continue
         connector.main()

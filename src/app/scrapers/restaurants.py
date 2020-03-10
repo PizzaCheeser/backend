@@ -4,6 +4,9 @@ import re
 
 from app.app import app
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
+from app.scrapers.base_scraper import retry_if_io_error
+
+from retrying import retry
 
 
 class PizzeriasScraper:
@@ -109,6 +112,15 @@ class PizzeriasScraper:
         }
         return pizzeria
 
+    @retry(retry_on_exception=retry_if_io_error)
+    def __get_product(self, params):
+        r = self.session.get(
+            url='https://www.pyszne.pl/xHttp/product/side-dishes',
+            params=params
+        )
+        return r.text
+
+
     def get_price(self, dinner):
 
         if len(dinner.find_all('div', {'class': 'meal-json'})) == 1:
@@ -116,14 +128,19 @@ class PizzeriasScraper:
         else:
             raise UnexpectedWebsiteResponse("div class meal-json returns no product or more than one")
 
+        '''
         r = self.session.get(
             url='https://www.pyszne.pl/xHttp/product/side-dishes',
             params=params
         )
+        '''
+
+        products=self.__get_product(params)
+
         size_price_list = list()
 
         try:
-            json_data = json.loads(re.search('(?<="json":)(.*)(?=})', r.text).group(0))
+            json_data = json.loads(re.search('(?<="json":)(.*)(?=})', products).group(0))
         except Exception as e:
             data = size_price_list.append(
                 {

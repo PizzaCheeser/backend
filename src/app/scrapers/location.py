@@ -3,6 +3,8 @@ import requests
 import re
 from app.app import app
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
+from app.scrapers.base_scraper import retry_if_io_error
+from retrying import retry
 
 
 class LocationScraper:
@@ -10,6 +12,8 @@ class LocationScraper:
         self.url = scraper_config.url
         self.redirection = scraper_config.redirection
         self.scraper_config = scraper_config
+
+        self.session = scraper_config.session #TODO: added in the latest changes
 
     @staticmethod
     def __no_restaurant(text):
@@ -26,13 +30,20 @@ class LocationScraper:
         delarea_links = [delarea.find('a')['href'] for delarea in delareas]
         return delarea_links
 
+    @retry(retry_on_exception=retry_if_io_error)
+    def __get_script(self, url):
+        script = self.session.get(url)
+        return script.text
+
+
     def find_details(self, url):
         def create_regexp(search, text):
             regexp = f"(?<={search} = ')(.*)(?=')"
             value = re.findall(regexp, text)
             return value
 
-        script = requests.get(url).text
+        #script = requests.get(url).text #TODO: change it
+        script = self.__get_script(url)
 
         empty = self.__no_restaurant(script)
         postcode = create_regexp("AreaId", script)
