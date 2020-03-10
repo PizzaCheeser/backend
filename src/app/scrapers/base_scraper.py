@@ -48,7 +48,7 @@ class ScraperBase():
             self.redirection='lieferservice'
 
         self.session = requests.Session()
-        #self.session = retry(requests.Session(), retries=5, connect = 5, backoff_factor=0.2)
+        self.session = retry(requests.Session(), retries=5, connect = 5, backoff_factor=0.2)
         #self.session.mount('https://', HTTPAdapter(max_retries=Retry(total=5, backoff_factor=10,
         #                                                             method_whitelist=False)))
 
