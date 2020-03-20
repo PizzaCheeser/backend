@@ -17,7 +17,7 @@ def ingredients_by_location(postcode):
         return Response(headers={"Access-Control-Allow-Origin": '*'}, response=json.dumps(ingredients), status=200)
 
 
-@app.route('/api/choosen-ingredients', methods=['POST'])
+@app.route('/api/get-pizzas', methods=['POST'])
 def ingredients_choice():
     es_settings = ES_config()
     search = ES_search(es_settings)
@@ -26,7 +26,7 @@ def ingredients_choice():
         must = ingredients['must']
         must_not = ingredients['must_not']
         post_code = ingredients["code"]
-        
+
         result = search.match_pizzas(must, must_not, code=post_code)
         return Response(headers={"Access-Control-Allow-Origin": '*'}, response=json.dumps(result), status=200)
 
