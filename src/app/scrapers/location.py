@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-import requests
 import re
 from app.app import app
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
@@ -13,7 +12,7 @@ class LocationScraper:
         self.redirection = scraper_config.redirection
         self.scraper_config = scraper_config
 
-        self.session = scraper_config.session #TODO: added in the latest changes
+        self.session = scraper_config.session
 
     @staticmethod
     def __no_restaurant(text):
@@ -35,14 +34,12 @@ class LocationScraper:
         script = self.session.get(url)
         return script.text
 
-
     def find_details(self, url):
         def create_regexp(search, text):
             regexp = f"(?<={search} = ')(.*)(?=')"
             value = re.findall(regexp, text)
             return value
 
-        #script = requests.get(url).text #TODO: change it
         script = self.__get_script(url)
 
         empty = self.__no_restaurant(script)

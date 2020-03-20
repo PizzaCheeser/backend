@@ -1,23 +1,23 @@
-from app.database.search import ES_search
+from app.database.search import EsSearch
 from app.scrapers.location import LocationScraper
 from app.scrapers.base_scraper import ScraperBase
 from app.scrapers.restaurants import PizzeriasScraper
 from app.utility.validator import Validator
-from app.database.base import ES_config, ES_locations, ES_pizzerias
+from app.database.base import EsConfig, EsLocations, EsPizzerias
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 from app.app import app
 
 
-class ScraperDatabaseConnector():
+class ScraperDatabaseConnector:
     def __init__(self):
-        es_settings = ES_config()
+        es_settings = EsConfig()
         scraper_settings = ScraperBase()
 
-        self.location = ES_locations(es_settings)
+        self.location = EsLocations(es_settings)
         self.location_scraper = LocationScraper(scraper_settings)
         self.restaurantScraper = PizzeriasScraper(scraper_settings)
-        self.pizzerias = ES_pizzerias(es_settings)
-        self.search = ES_search(es_settings)
+        self.pizzerias = EsPizzerias(es_settings)
+        self.search = EsSearch(es_settings)
         self.validator = Validator()
 
     def scrape_locations(self, url=None):
@@ -81,8 +81,8 @@ if __name__ == '__main__':
     connector = ScraperDatabaseConnector()
     while True:
         try:
-            #connector.scrape_locations(url='https://www.pyszne.pl/krakow')
-            connector.main() #TODO: add arg with city
+            # connector.scrape_locations(url='https://www.pyszne.pl/krakow')
+            connector.main()  # TODO: add arg with city
         except UnexpectedWebsiteResponse as e:
             app.logger.error(e)
             continue

@@ -7,7 +7,7 @@ from app.app import app
 from elasticsearch import Elasticsearch
 
 
-class ES_config:
+class EsConfig:
     def __init__(self, host=None,
                  pizzerias_id=None,
                  port=None,
@@ -25,7 +25,7 @@ class ES_config:
         self.url = f"http://{host}:{port}/"
         self.port = port
         self.pizzerias_id = pizzerias_id
-        self.location_index=location
+        self.location_index = location
         self.es = Elasticsearch(f'{host}:{self.port}')
         self.header = {"Content-Type": "application/json"}
 
@@ -60,7 +60,7 @@ class ES_config:
             app.logger.error(f"Error during database creation, status code: {r.status_code}, {r.text}")
 
 
-class ES_pizzerias:
+class EsPizzerias:
     '''
     Class responsible for updating and inserting pizzerias and pizzas data into the database
     '''
@@ -112,13 +112,13 @@ class ES_pizzerias:
 
         url = self.url + self.pizzerias_id + f'/_update/{pizzeria_id}/'
         body = {
-                  "script": {
-                    "source": "ctx._source.pizza.add(params.pizza)",
-                    "params": {
-                      "pizza": pizza
-                    }
-                  }
+            "script": {
+                "source": "ctx._source.pizza.add(params.pizza)",
+                "params": {
+                    "pizza": pizza
                 }
+            }
+        }
 
         r = requests.post(
             url=url,
@@ -147,16 +147,16 @@ class ES_pizzerias:
 
     def update_postcode(self, pizzeria_id, postcode):
 
-        #TODO: how to not update if already exists?
+        # TODO: how to not update if already exists?
 
         data = {
             "script":
                 {"source": "ctx._source.delivery_postcodes.add(params.delivery_postcodes)",
-                "params": {"delivery_postcodes": postcode}
+                 "params": {"delivery_postcodes": postcode}
                  }
         }
 
-        r = requests.post(self.url+self.pizzerias_id + '/_update/'+pizzeria_id,
+        r = requests.post(self.url + self.pizzerias_id + '/_update/' + pizzeria_id,
                           json=data, headers=self.header)
 
         if r.status_code == 200 or r.status_code == 201:
@@ -165,13 +165,13 @@ class ES_pizzerias:
             app.logger.warrning(f"Not updated {pizzeria_id} with postcode {postcode}")
 
     def recently_retrieved(self, pizzeria_id):
-        #TODO: check pizzeria timestamp
-        #TODO: check if the timestamp is older than 1 day
+        # TODO: check pizzeria timestamp
+        # TODO: check if the timestamp is older than 1 day
         # if so, return False
         return True
 
 
-class ES_locations:
+class EsLocations:
     '''
     Class responsible for inserting pizzerias locations into the database
     '''
@@ -189,7 +189,7 @@ class ES_locations:
             "link": link,
             "city": city,
             "empty": empty,
-            "timestamp":time.time()
+            "timestamp": time.time()
         }
 
         without_accents = unicodedata.normalize('NFKD', city).encode('ASCII', 'ignore').decode('utf-8').lower()
@@ -226,11 +226,11 @@ class ES_locations:
             query.append({"match": {"post-code.keyword": postcode}})
 
         full_query = {
-                "query": {
-                    "bool": {
-                        "must": query,
-                    }
+            "query": {
+                "bool": {
+                    "must": query,
                 }
+            }
         }
 
         results = self.es.search(index="locations", body=full_query, size=10000)
@@ -238,9 +238,9 @@ class ES_locations:
         results_amount = results["hits"]["total"]["value"]
         location = [
             {"postcode": result['_source']['post-code'],
-                        "city": result['_source']['city'],
-                        "link": result['_source']['link']
-                        } for result in results['hits']['hits']
+             "city": result['_source']['city'],
+             "link": result['_source']['link']
+             } for result in results['hits']['hits']
         ]
 
         if results_amount != len(location):

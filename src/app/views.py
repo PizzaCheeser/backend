@@ -3,14 +3,14 @@ import json
 from flask import request, Response, jsonify
 
 from app.app import app
-from app.database.search import ES_search
-from app.database.base import ES_config
+from app.database.search import EsSearch
+from app.database.base import EsConfig
 
 
 @app.route('/api/all-ingredients/<postcode>', methods=['GET'])
 def ingredients_by_location(postcode):
-    es_settings = ES_config()
-    search = ES_search(es_settings)
+    es_settings = EsConfig()
+    search = EsSearch(es_settings)
 
     if request.method == 'GET':
         ingredients = search.search_ingredients_from_location(postcode)
@@ -19,8 +19,8 @@ def ingredients_by_location(postcode):
 
 @app.route('/api/get-pizzas', methods=['POST'])
 def ingredients_choice():
-    es_settings = ES_config()
-    search = ES_search(es_settings)
+    es_settings = EsConfig()
+    search = EsSearch(es_settings)
     if request.method == 'POST':
         ingredients = request.get_json()
         must = ingredients['must']
@@ -33,8 +33,8 @@ def ingredients_choice():
 
 @app.route('/slack/get-pizzas', methods=['POST'])
 def slack_pizza():
-    es_settings = ES_config()
-    search = ES_search(es_settings)
+    es_settings = EsConfig()
+    search = EsSearch(es_settings)
 
     if request.method == 'POST':
         params = request.form['text']
@@ -58,7 +58,7 @@ def slack_pizza():
         result_string = f'I found {results_number} dreamed pizza! :) Bon appetit! \n \n'
         for result in results:
             restaurant_name = result['_id']
-            name=result['_source']['name']
+            name = result['_source']['name']
 
             ingredients = result['_source']['ingredients']
             result_string += f'*Pizzeria name:* {restaurant_name} \n *Pizza name*: {name} \n *Ingredients*: {ingredients} \n \n'
@@ -69,4 +69,3 @@ def slack_pizza():
         }
 
         return jsonify(response)
-

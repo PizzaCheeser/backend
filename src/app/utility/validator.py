@@ -1,12 +1,12 @@
-from app.database.search import ES_search
-from app.database.base import ES_config
+from app.database.search import EsSearch
+from app.database.base import EsConfig
 from fuzzywuzzy import fuzz
 
 
 class Validator:
     def __init__(self):
-        es_settings = ES_config()
-        self.search = ES_search(es_settings)
+        es_settings = EsConfig()
+        self.search = EsSearch(es_settings)
 
     @staticmethod
     def improved_fuzzy(first_ing, scnd_ing):
@@ -46,7 +46,7 @@ class Validator:
         pizza_orginal_ingredients = pizza['ingredients']
         list_orginal_ingredients = pizza_orginal_ingredients.replace(
             ' oraz ', ','
-        ).replace(' i ', ',').replace('z ','').lower().split(',')
+        ).replace(' i ', ',').replace('z ', '').lower().split(',')
         ingredients_list = [word.strip() for word in list_orginal_ingredients]
         validated_ingredients = list()
 

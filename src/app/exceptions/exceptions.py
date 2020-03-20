@@ -1,4 +1,3 @@
-
 class ElasticSearchException(Exception):
     pass
 

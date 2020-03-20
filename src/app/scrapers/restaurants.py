@@ -120,7 +120,6 @@ class PizzeriasScraper:
         )
         return r.text
 
-
     def get_price(self, dinner):
 
         if len(dinner.find_all('div', {'class': 'meal-json'})) == 1:
@@ -135,7 +134,7 @@ class PizzeriasScraper:
         )
         '''
 
-        products=self.__get_product(params)
+        products = self.__get_product(params)
 
         size_price_list = list()
 
@@ -187,9 +186,3 @@ class PizzeriasScraper:
                             'size_price': size_price
                         }
                         yield pizza
-
-
-
-
-
-

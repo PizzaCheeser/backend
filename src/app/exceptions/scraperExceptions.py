@@ -1,4 +1,3 @@
-
 class ScraperException(Exception):
     pass
 

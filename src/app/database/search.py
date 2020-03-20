@@ -1,7 +1,7 @@
 from app.exceptions.exceptions import SearchException, UnexpectedResult
 
 
-class ES_search:
+class EsSearch:
     '''
     Class responsible for searching in the database
     '''
@@ -25,10 +25,10 @@ class ES_search:
     def search_ingredients_from_location(self, postcode):
 
         query1 = {
-            "query":{
-                "bool":{
-                    "filter":{
-                        "term":{
+            "query": {
+                "bool": {
+                    "filter": {
+                        "term": {
                             "delivery_postcodes.keyword": postcode
                         }
                     }
@@ -60,7 +60,8 @@ class ES_search:
         except Exception as e:
             raise SearchException("Get all ingredients failed") from e
         try:
-            all_ingredients = [key['key'] for key in res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
+            all_ingredients = [key['key'] for key in
+                               res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
         except Exception as e:
             raise SearchException("Getting all ingredients from query result failed") from e
 
@@ -68,21 +69,21 @@ class ES_search:
 
     def search_all_ingredients(self):
         query = {
-                "aggs": {
-                    "all_ingredients": {
+            "aggs": {
+                "all_ingredients": {
 
-                        "nested": {
-                            "path": "pizza"
-                        },
-                        "aggs": {
-                            "all_ingredients": {"terms": {"field": "pizza.validated_ingredients.keyword",
-                                                          "size": 2147483647,
-                            }}
-                        }
+                    "nested": {
+                        "path": "pizza"
                     },
+                    "aggs": {
+                        "all_ingredients": {"terms": {"field": "pizza.validated_ingredients.keyword",
+                                                      "size": 2147483647,
+                                                      }}
+                    }
+                },
 
-                }
             }
+        }
 
         try:
             res = self.es.search(
@@ -92,7 +93,8 @@ class ES_search:
         except Exception as e:
             raise SearchException("Get all ingredients failed") from e
         try:
-            all_ingredients = [key['key'] for key in res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
+            all_ingredients = [key['key'] for key in
+                               res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
         except Exception as e:
             raise SearchException("Getting all ingredients from query result failed") from e
         return all_ingredients
@@ -108,19 +110,19 @@ class ES_search:
             return query
 
         full_query = {
-                        "nested": {
-                            "path": "pizza",
-                            "query": {
-                                "bool": {
-                                    "must": query_from_list(wanted),
-                                    "must_not": query_from_list(not_acceptable),
-                                }
-                            },
-                            "inner_hits": {
-                                "size": 100
-                            }
-                        }
+            "nested": {
+                "path": "pizza",
+                "query": {
+                    "bool": {
+                        "must": query_from_list(wanted),
+                        "must_not": query_from_list(not_acceptable),
                     }
+                },
+                "inner_hits": {
+                    "size": 100
+                }
+            }
+        }
 
         return full_query
 
@@ -134,12 +136,12 @@ class ES_search:
 
     def __get_pizzeria_details(self, pizzeria_id):
         query = {
-              "query": {
+            "query": {
                 "terms": {
-                  "_id": [pizzeria_id]
+                    "_id": [pizzeria_id]
                 }
-              }
             }
+        }
 
         result = self.es.search(index="pizzerias", body=query)['hits']['hits']
         return result
@@ -198,13 +200,13 @@ class ES_search:
     def __clean_matched_pizzas(self, results):
 
         new_results = [
-                    {
-                        "pizzeria_id": result["_id"],
-                        "pizzeria_name": result['_source']['name'],
-                        "ingredients": result['_source']['ingredients'],
-                        "url": self.get_pizzeria_url(result['_id']),
-                        "size_price": result['_source']['size_price']
-                    } for result in results
+            {
+                "pizzeria_id": result["_id"],
+                "pizzeria_name": result['_source']['name'],
+                "ingredients": result['_source']['ingredients'],
+                "url": self.get_pizzeria_url(result['_id']),
+                "size_price": result['_source']['size_price']
+            } for result in results
         ]
 
         return new_results
