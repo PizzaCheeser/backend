@@ -45,7 +45,6 @@ class ScraperDatabaseConnector():
             for link in links:
                 self.scrape_locations(self.location_scraper.url + link[1:])
 
-
     def main(self):
         '''
         Go through all locations with restaurants and scrape all pizzerias,

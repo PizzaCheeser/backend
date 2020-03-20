@@ -5,3 +5,7 @@ class ElasticSearchException(Exception):
 
 class SearchException(ElasticSearchException):
     pass
+
+
+class UnexpectedResult(SearchException):
+    pass

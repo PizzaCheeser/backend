@@ -71,8 +71,6 @@ class ES_pizzerias:
         self.header = config.header
         self.es = config.es
 
-
-
     def delete_index(self):
         r = requests.delete(
             url=self.url + f'{self.pizzerias_id}'

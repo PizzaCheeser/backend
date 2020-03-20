@@ -1,4 +1,4 @@
-from app.exceptions.exceptions import SearchException
+from app.exceptions.exceptions import SearchException, UnexpectedResult
 
 
 class ES_search:
@@ -51,10 +51,6 @@ class ES_search:
 
             }
         }
-
-
-        #all_ingredients = [key['key'] for key in res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
-
 
         try:
             res = self.es.search(
@@ -136,18 +132,38 @@ class ES_search:
             query = {"match": {"delivery_postcodes.keyword": code}}
         return query
 
+    def __get_pizzeria_details(self, pizzeria_id):
+        query = {
+              "query": {
+                "terms": {
+                  "_id": [pizzeria_id]
+                }
+              }
+            }
+
+        result = self.es.search(index="pizzerias", body=query)['hits']['hits']
+        return result
+
+    def get_pizzeria_url(self, pizzeria_id):
+        results = self.__get_pizzeria_details(pizzeria_id)
+
+        if not results:
+            return "Pizzeria with this id doesn't exist"
+
+        if len(results) != 1:
+            raise UnexpectedResult("More than one result")
+
+        return results[0]["_source"]["url"]
+
     def search_via_ingredients_postcode(self, wanted, not_acceptable, code):
         '''
         Find all ingredients in the specific location
         '''
-        print("TEST")
-        # TODO: merge pizzas with pizzerias in search function to return link to order pizza
-
 
         if not wanted:
-            wanted = []
+            wanted = list()
         if not not_acceptable:
-            not_acceptable = []
+            not_acceptable = list()
 
         ingredients_query = self.__query_search_via_ingredients(wanted, not_acceptable)
         postcode_query = self.__query_search_via_postcode(code)
@@ -165,8 +181,6 @@ class ES_search:
             }
         }
 
-        print("QUERY:", query)
-
         try:
             result = self.es.search(index="pizzerias", body=query)['hits']['hits']
         except Exception as e:
@@ -180,3 +194,22 @@ class ES_search:
             # no matching pizzas
             pizzas_list = list()
         return pizzas_list
+
+    def __clean_matched_pizzas(self, results):
+
+        new_results = [
+                    {
+                        "pizzeria_id": result["_id"],
+                        "pizzeria_name": result['_source']['name'],
+                        "ingredients": result['_source']['ingredients'],
+                        "url": self.get_pizzeria_url(result['_id']),
+                        "size_price": result['_source']['size_price']
+                    } for result in results
+        ]
+
+        return new_results
+
+    def match_pizzas(self, wanted, not_acceptable, code):
+        matched_pizzas = self.search_via_ingredients_postcode(wanted, not_acceptable, code)
+        cleaned_data = self.__clean_matched_pizzas(matched_pizzas)
+        return cleaned_data
