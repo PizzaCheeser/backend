@@ -3,3 +3,4 @@
 venv*
 src/ingredients_ratio.txt
 **/charts/*.tgz
+src/__pycache__/*
