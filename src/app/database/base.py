@@ -162,13 +162,24 @@ class EsPizzerias:
         if r.status_code == 200 or r.status_code == 201:
             app.logger.info(f"Updated {pizzeria_id} with postcode {postcode}")
         else:
-            app.logger.warrning(f"Not updated {pizzeria_id} with postcode {postcode}")
+            app.logger.warning(f"Not updated {pizzeria_id} with postcode {postcode}")
 
-    def recently_retrieved(self, pizzeria_id):
-        # TODO: check pizzeria timestamp
-        # TODO: check if the timestamp is older than 1 day
-        # if so, return False
-        return True
+    def update_field(self, pizzeria_id, field, value):
+
+        data = {
+            "doc": {
+                field: value
+            }
+        }
+
+        r = requests.post(self.url + self.pizzerias_id + '/_update/' + pizzeria_id,
+                          json=data, headers=self.header)
+
+        if r.status_code == 200 or r.status_code == 201:
+            app.logger.info(f"Updated {pizzeria_id} with {field} {value}")
+        else:
+            app.logger.warning(f"Not updated {pizzeria_id} with {field} {value}")
+
 
 
 class EsLocations:

@@ -143,7 +143,7 @@ class EsSearch:
             }
         }
 
-        result = self.es.search(index="pizzerias", body=query)['hits']['hits']
+        result = self.es.search(index=self.pizzerias_id, body=query)['hits']['hits']
         return result
 
     def get_pizzeria_url(self, pizzeria_id):
@@ -156,6 +156,16 @@ class EsSearch:
             raise UnexpectedResult("More than one result")
 
         return results[0]["_source"]["url"]
+
+    def get_pizzeria_timestamp(self, pizzeria_id): #TODO: this function and the function above can be the same
+        results = self.__get_pizzeria_details(pizzeria_id)
+
+        if not results:
+            return "Pizzeria with this id doesn't exist"
+
+        if len(results) != 1:
+            raise UnexpectedResult("More than one result")
+        return results[0]["_source"]["timestamp"]
 
     def search_via_ingredients_postcode(self, wanted, not_acceptable, code):
         '''
@@ -184,7 +194,7 @@ class EsSearch:
         }
 
         try:
-            result = self.es.search(index="pizzerias", body=query)['hits']['hits']
+            result = self.es.search(index=self.pizzerias_id, body=query)['hits']['hits']
         except Exception as e:
             raise SearchException("Searching via ingredients and postcode failed") from e
 

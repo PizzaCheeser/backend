@@ -7,6 +7,7 @@ from app.database.base import EsConfig, EsLocations, EsPizzerias
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 from app.app import app
 
+import time
 
 class ScraperDatabaseConnector:
     def __init__(self):
@@ -59,7 +60,13 @@ class ScraperDatabaseConnector:
                 pizzeria_id = pizzeria['endpoint'].split('/')[-1]
                 if self.pizzerias.check_if_exists(pizzeria_id):
                     self.pizzerias.update_postcode(pizzeria_id, location['postcode'])
-                    if self.pizzerias.recently_retrieved(pizzeria_id):
+
+                    timestamp = self.search.get_pizzeria_timestamp(pizzeria_id)
+                    timestamp_now = time.time()
+                    self.pizzerias.update_field(pizzeria_id, "timestamp", timestamp_now)
+
+                    delay = timestamp_now - timestamp
+                    if delay < 24*60*60:
                         continue
                 url = self.restaurantScraper.url + pizzeria['endpoint']
                 data = self.restaurantScraper.get_pizzeria_data(
