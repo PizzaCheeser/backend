@@ -54,7 +54,7 @@ class ScraperDatabaseConnector:
         If the pizzeria is already in the database and was scraped recently, it only updates delivery postcode filed
         otherwise it scrapes pizzeria website and inserts pizzeria wit all validated pizzas to the database
         '''
-
+        min_delay = int(app.config['MIN_DELAY_BETWEEN_SCRAPING'])
         locations_list = self.location.get_location(city=city, empty=False)
         for location in locations_list:
             all_pizzerias = self.restaurantScraper.get_all_pizzerias(location['link'])
@@ -68,7 +68,7 @@ class ScraperDatabaseConnector:
                     self.pizzerias.update_field(pizzeria_id, "timestamp", timestamp_now)
 
                     delay = timestamp_now - timestamp
-                    if delay < 24*60*60: #TODO: remove hardcoded value
+                    if delay < min_delay:
                         continue
                 url = self.restaurantScraper.url + pizzeria['endpoint']
                 data = self.restaurantScraper.get_pizzeria_data(
