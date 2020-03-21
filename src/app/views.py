@@ -6,7 +6,7 @@ from app.app import app
 from app.database.search import EsSearch
 from app.database.base import EsConfig
 
-app.config.from_envvar('SETTINGS_PATH')
+app.config.from_object('config')
 es_settings = EsConfig()
 search = EsSearch(es_settings)
 

@@ -8,6 +8,8 @@ from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 from app.app import app
 
 import time
+import argparse
+
 
 class ScraperDatabaseConnector:
     def __init__(self):
@@ -46,14 +48,14 @@ class ScraperDatabaseConnector:
             for link in links:
                 self.scrape_locations(self.location_scraper.url + link[1:])
 
-    def main(self):
+    def main(self, city=None):
         '''
         Go through all locations with restaurants and scrape all pizzerias,
         If the pizzeria is already in the database and was scraped recently, it only updates delivery postcode filed
         otherwise it scrapes pizzeria website and inserts pizzeria wit all validated pizzas to the database
         '''
 
-        locations_list = self.location.get_location(city="Kraków", empty=False)
+        locations_list = self.location.get_location(city=city, empty=False)
         for location in locations_list:
             all_pizzerias = self.restaurantScraper.get_all_pizzerias(location['link'])
             for pizzeria in all_pizzerias:
@@ -66,7 +68,7 @@ class ScraperDatabaseConnector:
                     self.pizzerias.update_field(pizzeria_id, "timestamp", timestamp_now)
 
                     delay = timestamp_now - timestamp
-                    if delay < 24*60*60:
+                    if delay < 24*60*60: #TODO: remove hardcoded value
                         continue
                 url = self.restaurantScraper.url + pizzeria['endpoint']
                 data = self.restaurantScraper.get_pizzeria_data(
@@ -86,10 +88,26 @@ class ScraperDatabaseConnector:
 if __name__ == '__main__':
     app.config.from_object('config')
     connector = ScraperDatabaseConnector()
+
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--location', help='If you want to scrape all locations add all, if you want to'
+                                           'scrape specific location - add name, if you dont want to scrape locations'
+                                           'skip this argument')
+    parser.add_argument('--city', help='If you want to scrape all pizzerias - skip this argument, if you want to'
+                                       'scrape pizzerias only for particular city - add name of this city')
+    args = parser.parse_args()
+
     while True:
         try:
-            # connector.scrape_locations(url='https://www.pyszne.pl/krakow')
-            connector.main()  # TODO: add arg with city
+            if args.location == 'all':
+                connector.scrape_locations()
+            elif args.location:
+                connector.scrape_locations(url=f'https://www.pyszne.pl/{args.location}')
+
+            if args.city:
+                connector.main(city=args.city)
+            else:
+                connector.main()
         except UnexpectedWebsiteResponse as e:
             app.logger.error(e)
             continue
