@@ -1,12 +1,12 @@
 import json
-import requests
 import re
+
+import requests
+from retrying import retry
 
 from app.app import app
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 from app.scrapers.base_scraper import retry_if_io_error
-
-from retrying import retry
 
 
 class PizzeriasScraper:
@@ -121,21 +121,12 @@ class PizzeriasScraper:
         return r.text
 
     def get_price(self, dinner):
-
         if len(dinner.find_all('div', {'class': 'meal-json'})) == 1:
             params = json.loads(dinner.find('div', {'class': 'meal-json'}).text)
         else:
             raise UnexpectedWebsiteResponse("div class meal-json returns no product or more than one")
 
-        '''
-        r = self.session.get(
-            url='https://www.pyszne.pl/xHttp/product/side-dishes',
-            params=params
-        )
-        '''
-
         products = self.__get_product(params)
-
         size_price_list = list()
 
         try:

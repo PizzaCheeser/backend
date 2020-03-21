@@ -1,14 +1,14 @@
+import argparse
+import time
+
+from app.app import app
+from app.database.base import EsConfig, EsLocations, EsPizzerias
 from app.database.search import EsSearch
-from app.scrapers.location import LocationScraper
+from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 from app.scrapers.base_scraper import ScraperBase
+from app.scrapers.location import LocationScraper
 from app.scrapers.restaurants import PizzeriasScraper
 from app.utility.validator import Validator
-from app.database.base import EsConfig, EsLocations, EsPizzerias
-from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
-from app.app import app
-
-import time
-import argparse
 
 
 class ScraperDatabaseConnector:
@@ -30,7 +30,6 @@ class ScraperDatabaseConnector:
         If there is a website with postcode for particular place but there is no available restaurants
         "empty" field is set as True
         '''
-
         if not url:
             url = self.location_scraper.url + self.location_scraper.redirection
         links = self.location_scraper.get_delarea_links(url)

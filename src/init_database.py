@@ -1,6 +1,7 @@
-from app.database.base import EsConfig
-import os
 import argparse
+import os
+
+from app.database.base import EsConfig
 
 ES_PORT = os.environ.get("ES_PORT", 9200)
 ES_PIZZERIAS_ID = os.environ.get("ES_PIZZERIAS_ID", "pizzerias2")

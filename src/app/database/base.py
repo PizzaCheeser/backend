@@ -1,10 +1,11 @@
-import requests
 import json
 import time
 import unicodedata
 
-from app.app import app
+import requests
 from elasticsearch import Elasticsearch
+
+from app.app import app
 
 
 class EsConfig:
@@ -40,7 +41,6 @@ class EsConfig:
             app.logger.error(f"Failed to remove database: status code: {r.status_code}, {r.text}")
 
     def create_structure(self):
-
         query = {
             "mappings": {
                 "properties": {
@@ -61,6 +61,7 @@ class EsConfig:
 
 
 class EsPizzerias:
+    # TODO: Use Elasticsearch module where possible
     '''
     Class responsible for updating and inserting pizzerias and pizzas data into the database
     '''
@@ -82,7 +83,6 @@ class EsPizzerias:
             app.logger.error(f"Failed to remove pizzerias index: status code: {r.status_code}, {r.text}")
 
     def insert_pizzeria(self, data):
-
         pizzeria_id = data.pop('pizzeria_id')
         opening_hours = json.dumps(data.pop('opening_hours'))
 
@@ -109,7 +109,6 @@ class EsPizzerias:
             app.logger.error(f"Failed to insert pizzeria {pizzeria_id}: status code: {r.status_code}, {r.text}")
 
     def insert_pizza(self, pizzeria_id, pizza):
-
         url = self.url + self.pizzerias_id + f'/_update/{pizzeria_id}/'
         body = {
             "script": {
@@ -133,6 +132,7 @@ class EsPizzerias:
             return False
 
     def check_if_exists(self, pizzeria_id):
+        # TODO: this function should be in search class
         r = requests.get(
             url=self.url + self.pizzerias_id + f"/_doc/{pizzeria_id}",
             headers=self.header
@@ -146,9 +146,7 @@ class EsPizzerias:
             return False
 
     def update_postcode(self, pizzeria_id, postcode):
-
-        # TODO: how to not update if already exists?
-
+        # TODO: Remove adding postcode every time, first should be checked if the postcode already exists
         data = {
             "script":
                 {"source": "ctx._source.delivery_postcodes.add(params.delivery_postcodes)",
@@ -165,7 +163,6 @@ class EsPizzerias:
             app.logger.warning(f"Not updated {pizzeria_id} with postcode {postcode}")
 
     def update_field(self, pizzeria_id, field, value):
-
         data = {
             "doc": {
                 field: value
@@ -179,7 +176,6 @@ class EsPizzerias:
             app.logger.info(f"Updated {pizzeria_id} with {field} {value}")
         else:
             app.logger.warning(f"Not updated {pizzeria_id} with {field} {value}")
-
 
 
 class EsLocations:

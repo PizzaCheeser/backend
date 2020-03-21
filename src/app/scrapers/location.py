@@ -1,9 +1,11 @@
-from bs4 import BeautifulSoup
 import re
+
+from bs4 import BeautifulSoup
+from retrying import retry
+
 from app.app import app
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 from app.scrapers.base_scraper import retry_if_io_error
-from retrying import retry
 
 
 class LocationScraper:
@@ -11,7 +13,6 @@ class LocationScraper:
         self.url = scraper_config.url
         self.redirection = scraper_config.redirection
         self.scraper_config = scraper_config
-
         self.session = scraper_config.session
 
     @staticmethod

@@ -13,7 +13,6 @@ class EsSearch:
         self.es = config.es
 
     def get_all_pizzerias(self):
-
         try:
             all_results = self.es.search(index=self.pizzerias_id)
         except Exception as e:
@@ -23,7 +22,6 @@ class EsSearch:
         return hits
 
     def search_ingredients_from_location(self, postcode):
-
         query1 = {
             "query": {
                 "bool": {
@@ -157,7 +155,8 @@ class EsSearch:
 
         return results[0]["_source"]["url"]
 
-    def get_pizzeria_timestamp(self, pizzeria_id): #TODO: this function and the function above can be the same
+    def get_pizzeria_timestamp(self, pizzeria_id):
+        # TODO: this function and the function above can be the same
         results = self.__get_pizzeria_details(pizzeria_id)
 
         if not results:
@@ -208,7 +207,6 @@ class EsSearch:
         return pizzas_list
 
     def __clean_matched_pizzas(self, results):
-
         new_results = [
             {
                 "pizzeria_id": result["_id"],

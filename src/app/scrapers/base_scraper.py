@@ -1,9 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
-
 from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from retrying import retry
+from urllib3.util.retry import Retry
 
 
 def retry_if_io_error(exception):
@@ -12,8 +11,7 @@ def retry_if_io_error(exception):
 
 
 class ScraperBase:
-    def __init__(self, country='PL'
-                 ):
+    def __init__(self, country='PL'):
         if country == 'PL':
             self.url = 'https://www.pyszne.pl/'
             self.redirection = 'restauracja'
@@ -30,7 +28,6 @@ class ScraperBase:
 
     @retry(retry_on_exception=retry_if_io_error)
     def get_soup(self, url):
-
         source = self.session.get(url, verify=True).text  # we're getting website text
         soup = BeautifulSoup(source, 'html.parser')  # and parse to bs
         return soup

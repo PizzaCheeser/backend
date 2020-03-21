@@ -1,6 +1,7 @@
-from app.database.search import EsSearch
-from app.database.base import EsConfig
 from fuzzywuzzy import fuzz
+
+from app.database.base import EsConfig
+from app.database.search import EsSearch
 
 
 class Validator:
