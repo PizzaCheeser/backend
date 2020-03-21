@@ -89,7 +89,7 @@ if __name__ == '__main__':
     app.config.from_object('config')
     connector = ScraperDatabaseConnector()
 
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser()
     parser.add_argument('--location', help='If you want to scrape all locations add all, if you want to'
                                            'scrape specific location - add name, if you dont want to scrape locations'
                                            'skip this argument')
