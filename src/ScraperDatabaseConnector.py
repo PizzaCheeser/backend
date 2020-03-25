@@ -1,5 +1,6 @@
 import argparse
 import time
+from requests.exceptions import TooManyRedirects
 
 from app.app import app
 from app.database.base import EsConfig, EsLocations, EsPizzerias
@@ -92,21 +93,24 @@ if __name__ == '__main__':
     parser.add_argument('--location', help='If you want to scrape all locations add all, if you want to'
                                            'scrape specific location - add name, if you dont want to scrape locations'
                                            'skip this argument')
-    parser.add_argument('--city', help='If you want to scrape all pizzerias - skip this argument, if you want to'
-                                       'scrape pizzerias only for particular city - add name of this city')
+    parser.add_argument('--city', help='If you want to scrape all pizzerias add all, if you want to'
+                                       'scrape pizzerias only for particular city - add name of this city, if you dont'
+                                       'want to scrape pizzerias just skip this argument')
     args = parser.parse_args()
 
-    while True:
-        try:
-            if args.location == 'all':
-                connector.scrape_locations()
-            elif args.location:
-                connector.scrape_locations(url=f'https://www.pyszne.pl/{args.location}')
+    try:
+        if args.location == 'all':
+            connector.scrape_locations()
+        elif args.location:
+            connector.scrape_locations(url=f'https://www.pyszne.pl/{args.location}')
 
-            if args.city:
-                connector.main(city=args.city)
-            else:
-                connector.main()
-        except UnexpectedWebsiteResponse as e:
-            app.logger.error(e)
-            continue
+        if args.city == 'all':
+            connector.main()
+        elif args.city:
+            connector.main(city=args.city)
+    except UnexpectedWebsiteResponse as e:
+        app.logger.error(e)
+    except TooManyRedirects as e:
+        app.logger.error(f"Too many redirects: {e}")
+    except Exception as e:
+        app.logger.error(f"Unknown error occurred: {e}")
