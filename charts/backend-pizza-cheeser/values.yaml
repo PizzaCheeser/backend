@@ -54,5 +54,5 @@ affinity: {}
 elasticsearch:
   clusterName: "pizza-cheeser"
   replicas: 1
-  esJavaOpts: "-Xmx256m -Xms256m"
+  esJavaOpts: "-Xmx256m -Xms512m"
   clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
