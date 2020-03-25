@@ -146,12 +146,14 @@ class EsPizzerias:
             return False
 
     def update_postcode(self, pizzeria_id, postcode):
-        # TODO: Remove adding postcode every time, first should be checked if the postcode already exists
+
         data = {
             "script":
-                {"source": "ctx._source.delivery_postcodes.add(params.delivery_postcodes)",
-                 "params": {"delivery_postcodes": postcode}
-                 }
+                {
+                    "source": "if(! ctx_source.delivery_postcodes.contain(postcode))"
+                    "{ctx._source.delivery_postcodes.add(params.delivery_postcodes}",
+                    "params": {"delivery_postcodes": postcode}
+                }
         }
 
         r = requests.post(self.url + self.pizzerias_id + '/_update/' + pizzeria_id,
