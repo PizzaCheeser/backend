@@ -242,7 +242,7 @@ class EsLocations:
             }
         }
 
-        results = self.es.search(index="locations", body=full_query, size=10000)
+        results = self.es.search(index="locations", body=full_query, size=100000)
         results_amount = results["hits"]["total"]["value"]
         location = [
             {"postcode": result['_source']['post-code'],
