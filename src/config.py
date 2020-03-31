@@ -1,6 +1,6 @@
 import os
 
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 ES_PORT = os.environ.get("ES_PORT", 9200)
 ES_PIZZERIAS_ID = os.environ.get("ES_PIZZERIAS_ID", "pizzerias2")
 ES_LOCATION_ID = os.environ.get("ES_LOCATION_ID", "locations2")
