@@ -1,18 +1,19 @@
 # Pizza cheeser
 
 The project is available at: https://pizza-cheeser.psota.pl/.
-The frontend part is not fully done yet. Although it doesn't look good - it works!
-You can also use slack app. 
+The frontend part is not fully done yet. Although you can take a look on the code here: https://github.com/Prasnal/Pizza-frontend
+You can also use slack app.
 Use the command to find the pizza:
 `/pizza post-code;wanted ingredient 1,wanted ingredient 2,...;not wanted ingredient1, not wanted ingredient 2, ...`
 
 ### How does it work?
-Pizza cheeser can choose the perfect pizza for you and for your group of friends.
-You just need to set up location where you would like to have pizza delivered,
-choose ingredients which you would like to have on your pizza,
-and mark ingredients which you don't like.
+Pizza cheeser can help you to choose pizza for you and for your group of friends.
+You just need to set up a location where you would like to have pizza delivered,
+choose ingredients that you would like to have on your pizza,
+and check ingredients that you don't like.
 Pizza cheeser will match the best pizzas for you and show you the results. 
-Then you can choose the cheaper one or this which you like the most.
+Then you can choose the cheaper one or the one which you like the most.
+Unfortunately, app is available only on polish language.
 Bon appetit!
 
 ### How to run it
@@ -53,8 +54,8 @@ used for slack integration
 - keyspaces: locations, pizzerias
 
 
-### How to integrate with slack app:
-- Go to your slack app website in: `https://api.slack.com/apps/`
+### How to integrate with Slack app:
+- Go to your slack app website in `https://api.slack.com/apps/`
 - Add slash command
 - Create new command i.e `/pizza`
 - Set up a correct request URL (should be ended ) - you can use ngrok.io to expose the port 5000
@@ -65,8 +66,8 @@ then copy forwarding URL and add `/slack/get-pizzas` at the end
  - Finish all TODOs in the code
  - Implement Celery in scrapers (i.e scrape_locations in ScraperDatabaseConnector)
  - Size should be normalized after scraping, get_price function should be changed
- - Grouping ingredients by type (i.e cheese, meat, vegetable etc.)
+ - Grouping ingredients by type (i.e cheese, meat, vegetable etc.). I can use NLP for it.
  - Better ingredients validator: ingredients ratio should be inserted the separate database keyspace,
-  should be modifiable and the radio should be taken from there
- - Add more countries and english version
+  should be modifiable and the radio should be taken from there. I can also use Morfeusz here to check the basic form of the word.
+ - Add more countries and English version
  - Swagger
