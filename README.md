@@ -64,10 +64,11 @@ then copy forwarding URL and add `/slack/get-pizzas` at the end
 
 ### TODO in the future:
  - Finish all TODOs in the code
- - Implement Celery in scrapers (i.e scrape_locations in ScraperDatabaseConnector)
+ - Change DEBUG mode to False
+ - Use nginx
+ - Use Celery in scrapers (i.e scrape_locations in ScraperDatabaseConnector)
  - Size should be normalized after scraping, get_price function should be changed
  - Grouping ingredients by type (i.e cheese, meat, vegetable etc.). I can use NLP for it.
  - Better ingredients validator: ingredients ratio should be inserted the separate database keyspace,
   should be modifiable and the radio should be taken from there. I can also use Morfeusz here to check the basic form of the word.
  - Add more countries and English version
- - Swagger
