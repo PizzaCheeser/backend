@@ -156,6 +156,7 @@ class EsSearch:
         return result
 
     def get_pizzeria_url(self, pizzeria_id):
+        return ""
         results = self.__get_pizzeria_details(pizzeria_id)
 
         if not results:
