@@ -45,19 +45,11 @@ class EsSearch:
             },
             "aggs": {
                 "all_ingredients": {
-                    "nested": {
-                        "path": "pizza",
+                    "terms": {
+                        "field": "validated_ingredients.keyword",
+                        "size": 2147483647,
                     },
-
-                    "aggs": {
-                        "all_ingredients": {"terms": {
-                            "field": "pizza.validated_ingredients.keyword",
-                            "size": 2147483647,
-                        },
-                        },
-                    }
                 },
-
             }
         }
 
@@ -70,7 +62,7 @@ class EsSearch:
             raise SearchException("Get all ingredients failed") from e
         try:
             all_ingredients = [key['key'] for key in
-                               res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
+                               res["aggregations"]["all_ingredients"]['buckets']]
         except Exception as e:
             raise SearchException("Getting all ingredients from query result failed") from e
 
@@ -112,25 +104,15 @@ class EsSearch:
     def __query_search_via_ingredients(wanted, not_acceptable):
         def query_from_list(l_ingredients):
             query = [
-                {'match': {'pizza.validated_ingredients': {"query": x, "fuzziness": "AUTO", "operator": "AND"}}}
+                {'match': {'validated_ingredients': {"query": x, "fuzziness": "AUTO", "operator": "AND"}}}
                 for x in l_ingredients
             ]
 
             return query
 
         full_query = {
-            "nested": {
-                "path": "pizza",
-                "query": {
-                    "bool": {
-                        "must": query_from_list(wanted),
-                        "must_not": query_from_list(not_acceptable),
-                    }
-                },
-                "inner_hits": {
-                    "size": 100
-                }
-            }
+            "must": query_from_list(wanted),
+            "must_not": query_from_list(not_acceptable),
         }
 
         return full_query
@@ -156,6 +138,7 @@ class EsSearch:
         return result
 
     def get_pizzeria_url(self, pizzeria_id):
+        return ""
         results = self.__get_pizzeria_details(pizzeria_id)
 
         if not results:
@@ -193,13 +176,20 @@ class EsSearch:
             postcode_query = self.__query_search_via_postcode(code)
             bool_query = dict()
             if ingredients_query:
-                bool_query.update({'must': ingredients_query})
+                bool_query.update(ingredients_query)
             if postcode_query:
                 bool_query.update({"filter": postcode_query})
 
             return {
-                "size": 1010,
-                "_source": "false",
+                "size": 100,
+                "_source": [
+                    "pizzeria_name",
+                    "name",
+                    "ingredients",
+                    "size_price",
+                    "validated_ingredients",
+                    "pizzeria_id"
+                ],
                 "query": {
                     "bool": bool_query
                 }
@@ -218,14 +208,14 @@ class EsSearch:
 
         @SEARCH_INGREDIENTS_PARSE_RESULTS.time()
         def parse_results():
-            pizzas_list = list()
-            if len(result) > 0:
-                for i in result:
-                    pizzas_list.extend(i['inner_hits']['pizza']['hits']['hits'])
-            else:
-                # no matching pizzas
-                pizzas_list = list()
-            return pizzas_list
+            # pizzas_list = list()
+            # if len(result) > 0:
+            #     for i in result:
+            #         pizzas_list.extend(i['inner_hits']['pizza']['hits']['hits'])
+            # else:
+            #     # no matching pizzas
+            #     pizzas_list = list()
+            return result
 
         return parse_results()
 
