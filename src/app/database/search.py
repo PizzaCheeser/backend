@@ -1,3 +1,5 @@
+from typing import List
+
 from app.exceptions.exceptions import SearchException, UnexpectedResult
 from prometheus_client import Summary
 
@@ -143,39 +145,37 @@ class EsSearch:
             query = {"match": {"delivery_postcodes.keyword": code}}
         return query
 
-    def __get_pizzeria_details(self, pizzeria_id):
+    def __get_pizzeria_details(self, pizzeria_id: str):
+        results = self.__get_pizzerias_details([pizzeria_id])
+
+        if not results:
+            return "Pizzeria with this id doesn't exist"
+
+        if len(results) != 1:
+            raise UnexpectedResult("More than one result")
+
+        return results[0]
+
+    def __get_pizzerias_details(self, pizzerias_ids: List[str]):
         query = {
             "query": {
                 "terms": {
-                    "_id": [pizzeria_id]
+                    "_id": pizzerias_ids
                 }
-            }
+            },
+            "size": 10000
         }
 
         result = self.es.search(index=self.pizzerias_id, body=query)['hits']['hits']
         return result
 
-    def get_pizzeria_url(self, pizzeria_id):
-        results = self.__get_pizzeria_details(pizzeria_id)
+    def get_pizzerias_urls(self, pizzerias_ids: List[str]):
+        results = self.__get_pizzerias_details(pizzerias_ids)
 
-        if not results:
-            return "Pizzeria with this id doesn't exist"
-
-        if len(results) != 1:
-            raise UnexpectedResult("More than one result")
-
-        return results[0]["_source"]["url"]
+        return {result["_id"]: result["_source"]["url"] for result in results}
 
     def get_pizzeria_timestamp(self, pizzeria_id):
-        # TODO: this function and the function above can be the same
-        results = self.__get_pizzeria_details(pizzeria_id)
-
-        if not results:
-            return "Pizzeria with this id doesn't exist"
-
-        if len(results) != 1:
-            raise UnexpectedResult("More than one result")
-        return results[0]["_source"]["timestamp"]
+        return self.__get_pizzeria_details(pizzeria_id)["_source"]["timestamp"]
 
     @SEARCH_INGREDIENTS.time()
     def search_via_ingredients_postcode(self, wanted, not_acceptable, code):
@@ -231,12 +231,15 @@ class EsSearch:
 
     @CLEAN_RESULTS.time()
     def __clean_matched_pizzas(self, results):
+        pizzerias_ids = {result['_id'] for result in results}
+        pizzerias_urls = self.get_pizzerias_urls(list(pizzerias_ids))
+
         new_results = [
             {
                 "pizzeria_id": result["_id"],
                 "pizzeria_name": result['_source']['name'],
                 "ingredients": result['_source']['ingredients'],
-                "url": self.get_pizzeria_url(result['_id']),
+                "url": pizzerias_urls[result["_id"]],
                 "size_price": result['_source']['size_price']
             } for result in results
         ]
