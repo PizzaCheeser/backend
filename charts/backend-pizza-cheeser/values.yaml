@@ -24,10 +24,7 @@ ingress:
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: api.pizza-cheeser.psota.pl
-      paths:
-        - "/"
+  host: api.pizza-cheeser.psota.pl
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
