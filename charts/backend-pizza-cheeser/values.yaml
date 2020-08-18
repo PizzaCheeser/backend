@@ -10,7 +10,7 @@ image:
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
-  - name: gitlab-secret-backend-pizza-cheeser
+  - name: gitlab-pull-secret
 
 nameOverride: ""
 fullnameOverride: ""
@@ -54,5 +54,5 @@ affinity: {}
 elasticsearch:
   clusterName: "pizza-cheeser"
   replicas: 1
-  esJavaOpts: "-Xmx512m -Xms512m"
+  esJavaOpts: "-Xmx256m -Xms256m"
   clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
