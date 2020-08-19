@@ -24,7 +24,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: HOST
-              value: "pizza-cheeser-master"
+              value: "{{ .Values.elasticsearch.clusterName }}-master"
             - name: ES_PIZZERIAS_ID
               value: "pizzerias"
             - name: ES_PORT
