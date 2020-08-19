@@ -15,6 +15,11 @@ imagePullSecrets:
 nameOverride: ""
 fullnameOverride: ""
 
+scraper:
+  schedule: "5 4 * * */4"
+  resources: {}
+
+
 service:
   type: ClusterIP
   port: 80

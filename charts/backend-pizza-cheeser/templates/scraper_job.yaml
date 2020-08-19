@@ -1,0 +1,39 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ include "backend-pizza-cheeser.fullname" . }}-scraper
+  labels:
+    {{- include "backend-pizza-cheeser.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.scraper.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          containers:
+          - name: {{ .Chart.Name }}
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            args:
+              - /bin/sh
+              - -c
+              - date; python3 ScraperDatabaseConnector.py --location all && python3 ScraperDatabaseConnector.py --city all
+            env:
+              - name: HOST
+                value: "{{ .Values.elasticsearch.clusterName }}-master"
+              - name: ES_PIZZERIAS_ID
+                value: "pizzerias"
+              - name: ES_PORT
+                value: "9200"
+              - name: ES_LOCATION_ID
+                value: "locations"
+              - name: DEBUG
+                value: "true"
+            resources:
+              {{- toYaml .Values.scraper.resources | nindent 14 }}
+          restartPolicy: OnFailure
+      backoffLimit: 2
