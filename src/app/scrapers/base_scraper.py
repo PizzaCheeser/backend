@@ -15,9 +15,11 @@ class ScraperBase:
         if country == 'PL':
             self.url = 'https://www.pyszne.pl/'
             self.redirection = 'restauracja'
+            self.currency = 'PLN'
         elif country == 'DE':
             self.url = 'https://www.lieferando.de/'
             self.redirection = 'lieferservice'
+            self.currency = 'EUR'
 
         self.session = requests.Session()
         self.session.mount('https://', HTTPAdapter(max_retries=Retry(total=5, backoff_factor=10,

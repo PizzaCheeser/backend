@@ -1,8 +1,10 @@
 import json
 import re
 
+import math
 import requests
 from retrying import retry
+from typing import Union
 
 from app.app import app
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
@@ -120,6 +122,28 @@ class PizzeriasScraper:
         )
         return r.text
 
+    def size_validation(self, text_size: str) -> Union[float, None]:
+        sizes = {
+            "mała": 30,
+            "średnia": 35,
+            "duża": 40
+        }
+
+        size_match = re.search('[+-]?([0-9]*[.])?[0-9]+', text_size) #Start z duzej czy z malej nie powinien miec znaczenia!
+
+        if size_match is not None:
+            size = float(size_match.group(0))
+            return size
+        else:
+            size = [sizes[key] for key in sizes.keys() if key in text_size.lower()]
+            if len(size) == 1:
+                return float(size[0])
+            elif len(size) == 0:
+                return None
+            else:
+                app.logger.warning("Pizza size section has too many elements, size was not added")
+                return None
+
     def get_price(self, dinner):
         if len(dinner.find_all('div', {'class': 'meal-json'})) == 1:
             params = json.loads(dinner.find('div', {'class': 'meal-json'}).text)
@@ -134,8 +158,8 @@ class PizzeriasScraper:
         except Exception as e:
             data = size_price_list.append(
                 {
-                    'size': "No data",
-                    'price': "No data"
+                    'size': None,
+                    'price': None
                 }
             )
             return data
@@ -143,20 +167,35 @@ class PizzeriasScraper:
         if not json_data:
             size_price_list.append(
                 {
-                    'size': "No data",
-                    'price': "No data"
+                    'size': None,
+                    'price': None
                 }
             )
         else:
             for i in json_data:
                 size_price_list.append(
                     {
-                        'size': i['name'],
+                        'size': self.size_validation(i['name']),
                         'price': i['price']
                     }
                 )
-
         return size_price_list
+
+    def get_price_per_cm(self, size: float, price: float) -> Union[float, None]:
+        if None in [size, price]:
+            return None
+        r = size/2
+        surface_area = math.pi * r**2
+        return round(price/surface_area, 3)
+
+    def add_price_per_cm(self, size_price_list):
+        options = list()
+        for size_price in size_price_list:
+            size = size_price['size']
+            price = size_price['price']
+            price_per_cm = self.get_price_per_cm(size, price)
+            options.append({"size": size, "price": price, "price_per_cm": price_per_cm})
+        return options
 
     def get_pizza(self, url):
         soup = self.scraper_config.get_soup(url)
@@ -174,6 +213,7 @@ class PizzeriasScraper:
                         size_price = self.get_price(dinner)
                         pizza = {
                             'name': meal, 'ingredients': pizza_ingredients.text,
-                            'size_price': size_price
+                            'size_price': self.add_price_per_cm(size_price),
+                            'currency': self.scraper_config.currency,
                         }
                         yield pizza
