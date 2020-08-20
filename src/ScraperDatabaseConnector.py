@@ -1,5 +1,7 @@
 import argparse
 import time
+
+import sentry_sdk
 from requests.exceptions import TooManyRedirects
 
 from app.app import app
@@ -10,6 +12,7 @@ from app.scrapers.base_scraper import ScraperBase
 from app.scrapers.location import LocationScraper
 from app.scrapers.restaurants import PizzeriasScraper
 from app.utility.validator import Validator
+from config import SENTRY_DSN
 
 
 class ScraperDatabaseConnector:
@@ -50,6 +53,9 @@ class ScraperDatabaseConnector:
                     self.scrape_locations(self.location_scraper.url + link[1:])
                 except Exception as err:
                     app.logger.error(f"Failed to scrape location url=\"{link}\". Err=\"{err}\"")
+                    with sentry_sdk.push_scope() as scope:
+                        scope.set_extra(url, link)
+                        sentry_sdk.capture_exception(err)
 
     def main(self, city=None):
         '''
@@ -101,6 +107,8 @@ if __name__ == '__main__':
                                        'want to scrape pizzerias just skip this argument')
     args = parser.parse_args()
 
+    sentry_sdk.init(dsn=SENTRY_DSN)
+
     try:
         if args.location == 'all':
             connector.scrape_locations()
@@ -112,8 +120,11 @@ if __name__ == '__main__':
         elif args.city:
             connector.main(city=args.city)
     except UnexpectedWebsiteResponse as e:
+        sentry_sdk.capture_exception(e)
         app.logger.error(e)
     except TooManyRedirects as e:
+        sentry_sdk.capture_exception(e)
         app.logger.error(f"Too many redirects: {e}")
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         app.logger.error(f"Unknown error occurred: {e}")

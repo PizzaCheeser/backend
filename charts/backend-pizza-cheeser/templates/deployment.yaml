@@ -35,6 +35,12 @@ spec:
               value: "true"
             - name: DEBUG
               value: "false"
+            - name: SENTRY_DSN
+              value: {{ .Values.sentry.dsn | quote }}
+            - name: SENTRY_ENVIRONMENT
+              value: {{ .Values.sentry.environment | quote }}
+            - nane: SENTRY_RELEASE
+              value: {{ .Values.image.tag | quote }}
           ports:
             - name: http
               containerPort: 5000
