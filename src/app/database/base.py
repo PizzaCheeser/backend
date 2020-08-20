@@ -150,8 +150,8 @@ class EsPizzerias:
         data = {
             "script":
                 {
-                    "source": "if(! ctx_source.delivery_postcodes.contain(postcode))"
-                    "{ctx._source.delivery_postcodes.add(params.delivery_postcodes}",
+                    "source": "ctx._source.delivery_postcodes.contains(tag) ? (ctx.op = \"none\") : "
+                              "ctx._source.delivery_postcodes.add(params.delivery_postcodes)",
                     "params": {"delivery_postcodes": postcode}
                 }
         }
@@ -242,7 +242,7 @@ class EsLocations:
             }
         }
 
-        results = self.es.search(index="locations", body=full_query, size=100000)
+        results = self.es.search(index=self.index, body=full_query, size=100000)
         results_amount = results["hits"]["total"]["value"]
         location = [
             {"postcode": result['_source']['post-code'],
