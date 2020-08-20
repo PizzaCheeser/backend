@@ -25,6 +25,7 @@ class LocationScraper:
             return False
 
     def get_delarea_links(self, url):
+        app.logger.debug(f"Trying to fetch delivery area from {url}")
         soup = self.scraper_config.get_soup(url)
         delareas = soup.find_all('div', 'delarea')
         delarea_links = [delarea.find('a')['href'] for delarea in delareas]
@@ -36,6 +37,8 @@ class LocationScraper:
         return script.text
 
     def find_details(self, url):
+        app.logger.debug(f"Trying to fetch location details from {url}")
+
         def create_regexp(search, text):
             regexp = f"(?<={search} = ')(.*)(?=')"
             value = re.findall(regexp, text)

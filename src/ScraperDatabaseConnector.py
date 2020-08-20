@@ -46,7 +46,10 @@ class ScraperDatabaseConnector:
             )
         else:
             for link in links:
-                self.scrape_locations(self.location_scraper.url + link[1:])
+                try:
+                    self.scrape_locations(self.location_scraper.url + link[1:])
+                except Exception as err:
+                    app.logger.error(f"Failed to scrape location url=\"{link}\". Err=\"{err}\"")
 
     def main(self, city=None):
         '''
