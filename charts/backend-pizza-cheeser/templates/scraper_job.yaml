@@ -33,6 +33,12 @@ spec:
                 value: "locations"
               - name: DEBUG
                 value: "true"
+              - name: SENTRY_DSN
+                value: {{ .Values.sentry.dsn | quote }}
+              - name: SENTRY_ENVIRONMENT
+                value: {{ .Values.sentry.environment | quote }}
+              - name: SENTRY_RELEASE
+                value: {{ .Values.image.tag | quote }}
             resources:
               {{- toYaml .Values.scraper.resources | nindent 14 }}
           restartPolicy: OnFailure
