@@ -15,6 +15,3 @@ app = Flask(__name__)
 metrics = PrometheusMetrics(app, defaults_prefix="pizza")
 CORS(app)
 
-@app.route('/debug-sentry')
-def trigger_error():
-    division_by_zero = 1 / 0
