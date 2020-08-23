@@ -19,6 +19,9 @@ scraper:
   schedule: "5 4 * * */4"
   resources: {}
 
+sentry:
+  dsn: ""
+  environment: "prod"
 
 service:
   type: ClusterIP
