@@ -150,8 +150,8 @@ class EsPizzerias:
         data = {
             "script":
                 {
-                    "source": "ctx._source.delivery_postcodes.contains(tag) ? (ctx.op = \"none\") : "
-                              "ctx._source.delivery_postcodes.add(params.delivery_postcodes)",
+                    "source": "ctx._source.delivery_postcodes.contains(params.delivery_postcodes) ? "
+                              "(ctx.op = \"none\") : ctx._source.delivery_postcodes.add(params.delivery_postcodes)",
                     "params": {"delivery_postcodes": postcode}
                 }
         }
