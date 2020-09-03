@@ -83,14 +83,8 @@ class ScraperDatabaseConnector:
                 pizzeria_id = pizzeria['endpoint'].split('/')[-1]
                 if self.pizzerias.check_if_exists(pizzeria_id):
                     self.pizzerias.update_postcode(pizzeria_id, location['postcode'])
+                    return
 
-                    timestamp = self.search.get_pizzeria_timestamp(pizzeria_id)
-                    timestamp_now = time.time()
-                    self.pizzerias.update_field(pizzeria_id, "timestamp", timestamp_now)
-
-                    delay = timestamp_now - timestamp
-                    if delay < self.MIN_DELAY:
-                        return
                 url = self.restaurantScraper.url + pizzeria['endpoint']
                 data = self.restaurantScraper.get_pizzeria_data(
                     pizzeria_id=pizzeria_id,
