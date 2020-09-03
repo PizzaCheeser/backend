@@ -201,8 +201,13 @@ class EsLocations:
             "timestamp": time.time()
         }
 
-        without_accents = unicodedata.normalize('NFKD', city).encode('ASCII', 'ignore').decode('utf-8').lower()
-        index = f"{without_accents}-{code}"
+        normalized = unicodedata.\
+            normalize('NFKD', city).\
+            encode('ASCII', 'ignore').\
+            decode('utf-8').\
+            lower().\
+            replace('/', '_')
+        index = f"{normalized}-{code}"
 
         r = self.session.post(
             url=self.url + self.index + f"/_doc/{index}",
