@@ -34,9 +34,9 @@ Then you need to run the frontend part, you can read how to do this here: https:
 ### API:
 - `GET /api/all-ingredients/<postcode>?pizzeria=pizzeria,pizzeria_id`
 Returns all ingredients (in JSON) from pizzas available in the particular location.
-Results can by optionally limited to given pizzerias.
+Results can by optionally limited to given pizzerias. 
 
-- `POST /api/get-pizzas?pizzeria=pizzeria,pizzeria_id`
+- `POST /api/get-pizzas?pizzeria=pizzeria,pizzeria_id&sort_by=price`
 ```json
 {
     "must":[],
@@ -46,7 +46,7 @@ Results can by optionally limited to given pizzerias.
 ```
 Returns all pizzas available in particular location with `must` ingredients
 and without `must_not` ingredients.Results can by optionally limited to
-given pizzerias.
+given pizzerias. Optional sort_by params allows to sort pizzas by price per cm2.
 
 - `POST /slack/get-pizzas`
 used for slack integration

@@ -56,15 +56,16 @@ def ingredients_by_location(postcode):
     return Response(headers={"Access-Control-Allow-Origin": '*'}, response=json.dumps(ingredients), status=200)
 
 
-@app.route('/api/get-pizzas', methods=['POST'])
+@app.route('/api/get-pizzas', methods=['POST', 'GET'])
 def ingredients_choice():
     pizzerias = __get_list_from_query(request.args, "pizzeria")
+    sort_by = request.args.get("sort_by", None)
     ingredients = request.get_json()
     must = ingredients['must']
     must_not = ingredients['must_not']
     post_code = ingredients["code"]
 
-    result = search.match_pizzas(must, must_not, code=post_code, pizzerias_ids=pizzerias)
+    result = search.match_pizzas(must, must_not, code=post_code, pizzerias_ids=pizzerias, sort_by=sort_by)
     return Response(headers={"Access-Control-Allow-Origin": '*'}, response=json.dumps(result), status=200)
 
 
