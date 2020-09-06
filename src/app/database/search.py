@@ -35,34 +35,37 @@ class EsSearch:
         hits = all_results['hits']['hits']
         return hits
 
-    def search_ingredients_from_location(self, postcode):
+    def search_ingredients(self, postcode=None, pizzerias_ids=None):
         query1 = {
-            "query": {
-                "bool": {
-                    "filter": {
-                        "term": {
-                            "delivery_postcodes.keyword": postcode
-                        }
-                    }
-                }
-            },
             "aggs": {
                 "all_ingredients": {
                     "nested": {
                         "path": "pizza",
                     },
-
                     "aggs": {
                         "all_ingredients": {"terms": {
                             "field": "pizza.validated_ingredients.keyword",
                             "size": 2147483647,
-                        },
-                        },
+                        }},
                     }
                 },
 
             }
         }
+
+        filter_query = []
+        if pizzerias_ids and len(pizzerias_ids) > 0:
+            filter_query.append({
+                "terms": {"_id": pizzerias_ids}
+            })
+
+        if postcode:
+            filter_query.append({
+                "term": {"delivery_postcodes.keyword": postcode}
+            })
+
+        if len(filter_query) > 0:
+            query1["query"] = {"bool": {"filter": filter_query}}
 
         try:
             res = self.es.search(
@@ -78,38 +81,6 @@ class EsSearch:
         except Exception as e:
             raise SearchException("Getting all ingredients from query result failed") from e
 
-        return all_ingredients
-
-    def search_all_ingredients(self):
-        query = {
-            "aggs": {
-                "all_ingredients": {
-
-                    "nested": {
-                        "path": "pizza"
-                    },
-                    "aggs": {
-                        "all_ingredients": {"terms": {"field": "pizza.validated_ingredients.keyword",
-                                                      "size": 2147483647,
-                                                      }}
-                    }
-                },
-
-            }
-        }
-
-        try:
-            res = self.es.search(
-                index=PIZZERIAS_INDEX,
-                body=query
-            )
-        except Exception as e:
-            raise SearchException("Get all ingredients failed") from e
-        try:
-            all_ingredients = [key['key'] for key in
-                               res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
-        except Exception as e:
-            raise SearchException("Getting all ingredients from query result failed") from e
         return all_ingredients
 
     @staticmethod
@@ -143,9 +114,15 @@ class EsSearch:
     def __query_search_via_postcode(code=None):
         if not code:
             return None
-        else:
-            query = {"match": {"delivery_postcodes.keyword": code}}
-        return query
+
+        return {"term": {"delivery_postcodes.keyword": code}}
+
+    @staticmethod
+    def __query_search_via_pizzeria_ids(pizzerias_ids=None):
+        if not pizzerias_ids or len(pizzerias_ids) == 0:
+            return None
+
+        return {"terms": {"_id": pizzerias_ids}}
 
     def __get_pizzeria_details(self, pizzeria_id: str):
         results = self.__get_pizzerias_details([pizzeria_id])
@@ -187,7 +164,7 @@ class EsSearch:
         return self.__get_pizzeria_details(pizzeria_id)["_source"]["timestamp"]
 
     @SEARCH_INGREDIENTS.time()
-    def search_via_ingredients_postcode(self, wanted, not_acceptable, code):
+    def search_via_ingredients_postcode(self, wanted, not_acceptable, code, pizzerias_ids=None):
         '''
         Find all ingredients in the specific location
         '''
@@ -199,12 +176,13 @@ class EsSearch:
         @SEARCH_INGREDIENTS_PREPARE_QUERY.time()
         def prepare_query():
             ingredients_query = self.__query_search_via_ingredients(wanted, not_acceptable)
-            postcode_query = self.__query_search_via_postcode(code)
+            filter_query = [self.__query_search_via_postcode(code), self.__query_search_via_pizzeria_ids(pizzerias_ids)]
+            filter_query = list(filter(None, filter_query))
             bool_query = dict()
             if ingredients_query:
                 bool_query.update({'must': ingredients_query})
-            if postcode_query:
-                bool_query.update({"filter": postcode_query})
+            if len(filter_query) > 0:
+                bool_query.update({"filter": filter_query})
 
             return {
                 "size": 1010,
@@ -261,7 +239,7 @@ class EsSearch:
         ]
         return new_results
 
-    def match_pizzas(self, wanted, not_acceptable, code):
-        matched_pizzas = self.search_via_ingredients_postcode(wanted, not_acceptable, code)
+    def match_pizzas(self, wanted, not_acceptable, code, pizzerias_ids=None):
+        matched_pizzas = self.search_via_ingredients_postcode(wanted, not_acceptable, code, pizzerias_ids)
         cleaned_data = self.__clean_matched_pizzas(matched_pizzas)
         return cleaned_data

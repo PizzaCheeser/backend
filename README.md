@@ -32,10 +32,11 @@ To scrape pizzerias and insert them to the database:
 Then you need to run the frontend part, you can read how to do this here: https://github.com/Prasnal/Pizza-frontend
 
 ### API:
-- `GET /api/all-ingredients/<postcode>`
-Returns all ingredients (in JSON) from pizzas available in the particular location
+- `GET /api/all-ingredients/<postcode>?pizzeria=pizzeria,pizzeria_id`
+Returns all ingredients (in JSON) from pizzas available in the particular location.
+Results can by optionally limited to given pizzerias.
 
-- `POST /api/get-pizzas`
+- `POST /api/get-pizzas?pizzeria=pizzeria,pizzeria_id`
 ```json
 {
     "must":[],
@@ -44,7 +45,8 @@ Returns all ingredients (in JSON) from pizzas available in the particular locati
 }
 ```
 Returns all pizzas available in particular location with `must` ingredients
-and without `must_not` ingredients.
+and without `must_not` ingredients.Results can by optionally limited to
+given pizzerias.
 
 - `POST /slack/get-pizzas`
 used for slack integration

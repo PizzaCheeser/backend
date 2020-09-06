@@ -2,6 +2,7 @@ import json
 from math import floor
 
 from flask import request, Response, jsonify
+from werkzeug.datastructures import ImmutableMultiDict
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
@@ -50,19 +51,26 @@ def get_sitemap(page):
 
 @app.route('/api/all-ingredients/<postcode>', methods=['GET'])
 def ingredients_by_location(postcode):
-    ingredients = search.search_ingredients_from_location(postcode)
+    pizzerias = __get_list_from_query(request.args, "pizzeria")
+    ingredients = search.search_ingredients(postcode=postcode, pizzerias_ids=pizzerias)
     return Response(headers={"Access-Control-Allow-Origin": '*'}, response=json.dumps(ingredients), status=200)
 
 
 @app.route('/api/get-pizzas', methods=['POST'])
 def ingredients_choice():
+    pizzerias = __get_list_from_query(request.args, "pizzeria")
     ingredients = request.get_json()
     must = ingredients['must']
     must_not = ingredients['must_not']
     post_code = ingredients["code"]
 
-    result = search.match_pizzas(must, must_not, code=post_code)
+    result = search.match_pizzas(must, must_not, code=post_code, pizzerias_ids=pizzerias)
     return Response(headers={"Access-Control-Allow-Origin": '*'}, response=json.dumps(result), status=200)
+
+
+def __get_list_from_query(args: ImmutableMultiDict, name: str) -> [str]:
+    query = args.get(name, None)
+    return query.split(',') if query else None
 
 
 @app.route('/slack/get-pizzas', methods=['POST'])

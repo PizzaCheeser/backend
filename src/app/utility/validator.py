@@ -31,7 +31,7 @@ class Validator:
         return ingredient
 
     def pizza_validator(self, pizza):
-        all_ingredients = self.search.search_all_ingredients()
+        all_ingredients = self.search.search_ingredients()
 
         list_original_ingredients = pizza['ingredients']. \
             replace(' oraz ', ' ').replace(' i ', ' '). \
