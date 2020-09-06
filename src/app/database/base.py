@@ -41,6 +41,10 @@ class EsConfig:
             app.logger.error(f"Failed to remove database: status code: {r.status_code}, {r.text}")
 
     def create_structure(self):
+        self.create_pizzas_index()
+        self.create_locations_index()
+
+    def create_pizzas_index(self):
         query = {
             "mappings": {
                 "properties": {
@@ -48,16 +52,30 @@ class EsConfig:
                 }
             }
         }
-
         r = requests.put(
             url=self.url + self.pizzerias_id,
             json=query
         )
-
         if r.status_code == 200:
-            app.logger.info("Successfully created database")
+            app.logger.info("Successfully created pizzas index")
         else:
-            app.logger.error(f"Error during database creation, status code: {r.status_code}, {r.text}")
+            app.logger.error(f"Error during pizzas index creation, status code: {r.status_code}, {r.text}")
+
+    def create_locations_index(self):
+        query = {
+            "settings": {
+                "index": {
+                    "max_result_window": 100000
+                }
+            }
+        }
+        r = requests.put(url=self.url + self.location_index, json=query)
+        if r.status_code == 200:
+            app.logger.info("Successfully created locations index")
+        else:
+            app.logger.error(f"Error during locations index creation, status code: {r.status_code}, {r.text}")
+
+        pass
 
 
 class EsPizzerias:
@@ -201,11 +219,11 @@ class EsLocations:
             "timestamp": time.time()
         }
 
-        normalized = unicodedata.\
-            normalize('NFKD', city).\
-            encode('ASCII', 'ignore').\
-            decode('utf-8').\
-            lower().\
+        normalized = unicodedata. \
+            normalize('NFKD', city). \
+            encode('ASCII', 'ignore'). \
+            decode('utf-8'). \
+            lower(). \
             replace('/', '_')
         index = f"{normalized}-{code}"
 
@@ -247,7 +265,7 @@ class EsLocations:
             }
         }
 
-        results = self.es.search(index=self.index, body=full_query, size=10000)
+        results = self.es.search(index=self.index, body=full_query, size=100000)
         results_amount = results["hits"]["total"]["value"]
         location = [
             {"postcode": result['_source']['post-code'],
