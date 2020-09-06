@@ -10,6 +10,8 @@ from app.app import app
 from app.exceptions.scraperExceptions import UnexpectedWebsiteResponse
 from app.scrapers.base_scraper import retry_if_io_error
 
+size_regexp = re.compile('[+-]?([0-9]*[.])?[0-9]+')
+json_regexp = re.compile('(?<="json":)(.*)(?=})')
 
 class PizzeriasScraper:
     '''
@@ -129,7 +131,7 @@ class PizzeriasScraper:
             "duża": 40
         }
 
-        size_match = re.search('[+-]?([0-9]*[.])?[0-9]+', text_size) #Start z duzej czy z malej nie powinien miec znaczenia!
+        size_match = size_regexp.search(text_size)
 
         if size_match is not None:
             size = float(size_match.group(0))
@@ -154,7 +156,7 @@ class PizzeriasScraper:
         size_price_list = list()
 
         try:
-            json_data = json.loads(re.search('(?<="json":)(.*)(?=})', products).group(0))
+            json_data = json.loads(json_regexp.search(products).group(0))
         except Exception as e:
             data = size_price_list.append(
                 {
