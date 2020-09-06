@@ -202,8 +202,19 @@ class PizzeriasScraper:
     def get_pizza(self, url):
         soup = self.scraper_config.get_soup(url)
         dinners = soup.find_all('div', class_=re.compile(r'meal-container js-meal-container js-meal-search-*'))
-        for dinner in dinners:
+        for index, dinner in enumerate(dinners):
+            pizza_id = dinner['id']
+            if index > 0:
+                prev_pizza_id = dinners[index - 1]['id']
+            else:
+                meal_json_div = dinner.find('div', {'class': 'meal-json'})
+                try:
+                    prev_pizza_id = json.loads(meal_json_div.text)['menucat']
+                except Exception as e:
+                    prev_pizza_id = None
+
             general_meal_list = dinner.find('span', {'class': 'meal-name'}).find('span')
+
             if general_meal_list:
                 meal = general_meal_list.text
 
@@ -214,8 +225,11 @@ class PizzeriasScraper:
                     if pizza_description and pizza_ingredients:
                         size_price = self.get_price(dinner)
                         pizza = {
-                            'name': meal, 'ingredients': pizza_ingredients.text,
+                            'name': meal,
+                            'ingredients': pizza_ingredients.text,
                             'size_price': self.add_price_per_cm(size_price),
                             'currency': self.scraper_config.currency,
+                            'pizza_id': pizza_id,
+                            'prev_pizza_id': prev_pizza_id
                         }
                         yield pizza

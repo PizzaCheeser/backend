@@ -229,6 +229,13 @@ class EsSearch:
 
         return parse_results()
 
+    def __create_url(self, pizzeria_url, prev_pizza_id):
+        if prev_pizza_id:
+            return pizzeria_url + '#' + prev_pizza_id
+        else:
+            return pizzeria_url
+
+
     @CLEAN_RESULTS.time()
     def __clean_matched_pizzas(self, results):
         pizzerias_ids = {result['_id'] for result in results}
@@ -239,11 +246,10 @@ class EsSearch:
                 "pizzeria_id": result["_id"],
                 "pizzeria_name": result['_source']['name'],
                 "ingredients": result['_source']['ingredients'],
-                "url": pizzerias_urls[result["_id"]],
+                "url": self.__create_url(pizzerias_urls[result["_id"]], result['_source']['prev_pizza_id']),
                 "size_price": result['_source']['size_price']
             } for result in results
         ]
-
         return new_results
 
     def match_pizzas(self, wanted, not_acceptable, code):
