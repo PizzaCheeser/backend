@@ -169,10 +169,17 @@ class EsSearch:
         result = self.es.search(index=self.pizzerias_id, body=query)['hits']['hits']
         return result
 
-    def get_pizzerias_urls(self, pizzerias_ids: List[str]):
+    def get_pizzerias_details(self, pizzerias_ids: List[str]):
         results = self.__get_pizzerias_details(pizzerias_ids)
 
-        return {result["_id"]: result["_source"]["url"] for result in results}
+        return {result["_id"]: self.clean_pizzeria_details(result) for result in results}
+
+    @staticmethod
+    def clean_pizzeria_details(result):
+        return {
+            "url": result["_source"]["url"],
+            "name": result["_source"]["name"],
+        }
 
     def get_pizzeria_timestamp(self, pizzeria_id):
         return self.__get_pizzeria_details(pizzeria_id)["_source"]["timestamp"]
@@ -239,14 +246,15 @@ class EsSearch:
     @CLEAN_RESULTS.time()
     def __clean_matched_pizzas(self, results):
         pizzerias_ids = {result['_id'] for result in results}
-        pizzerias_urls = self.get_pizzerias_urls(list(pizzerias_ids))
+        pizzerias_details = self.get_pizzerias_details(list(pizzerias_ids))
 
         new_results = [
             {
                 "pizzeria_id": result["_id"],
-                "pizzeria_name": result['_source']['name'],
+                "pizzeria_name": pizzerias_details[result["_id"]]["name"],
+                "name": result['_source']['name'],
                 "ingredients": result['_source']['ingredients'],
-                "url": self.__create_url(pizzerias_urls[result["_id"]], result['_source']['prev_pizza_id']),
+                "url": self.__create_url(pizzerias_details[result["_id"]]["url"], result['_source']['prev_pizza_id']),
                 "size_price": result['_source']['size_price']
             } for result in results
         ]
