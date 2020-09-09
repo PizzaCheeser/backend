@@ -65,3 +65,10 @@ elasticsearch:
   replicas: 1
   esJavaOpts: "-Xmx256m -Xms256m"
   clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
+  keystore:
+    - secretName: minio
+      items:
+        - key: accesskey
+          path: s3.client.default.access_key
+        - key: secretkey
+          path: s3.client.default.secret_key
