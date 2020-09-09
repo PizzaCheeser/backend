@@ -57,6 +57,10 @@ tolerations: []
 affinity: {}
 
 elasticsearch:
+  imageTag: 85c105fd
+  image: registry.gitlab.memleak.pl/pizzacheeser/infra/elasticsearch
+  imagePullSecrets:
+    - name: gitlab-pull-secret
   clusterName: "pizza-cheeser"
   replicas: 1
   esJavaOpts: "-Xmx256m -Xms256m"
