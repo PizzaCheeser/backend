@@ -24,7 +24,7 @@ Bon appetit!
 To scrape pizzerias and insert them to the database:
 
 - `docker-compose exec web bash`
-- `python init_database.py --help`
+- `python db/migrate.py --help`
 - then run `python init_dabase` with the correct parameters
 - `python ScraperDatabaseConnector.py --help`
 - then run `python ScraperDatabaseConnector.py` with the correct parameters
