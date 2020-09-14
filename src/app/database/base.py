@@ -30,53 +30,6 @@ class EsConfig:
         self.es = Elasticsearch(f'{host}:{self.port}')
         self.header = {"Content-Type": "application/json"}
 
-    def delete_whole_database(self):
-        r = requests.delete(
-            url=self.url + '*'
-        )
-
-        if r.status_code == 200:
-            app.logger.info("Successfully removed database")
-        else:
-            app.logger.error(f"Failed to remove database: status code: {r.status_code}, {r.text}")
-
-    def create_structure(self):
-        self.create_pizzas_index()
-        self.create_locations_index()
-
-    def create_pizzas_index(self):
-        query = {
-            "mappings": {
-                "properties": {
-                    "pizza": {"type": "nested"},
-                }
-            }
-        }
-        r = requests.put(
-            url=self.url + self.pizzerias_id,
-            json=query
-        )
-        if r.status_code == 200:
-            app.logger.info("Successfully created pizzas index")
-        else:
-            app.logger.error(f"Error during pizzas index creation, status code: {r.status_code}, {r.text}")
-
-    def create_locations_index(self):
-        query = {
-            "settings": {
-                "index": {
-                    "max_result_window": 100000
-                }
-            }
-        }
-        r = requests.put(url=self.url + self.location_index, json=query)
-        if r.status_code == 200:
-            app.logger.info("Successfully created locations index")
-        else:
-            app.logger.error(f"Error during locations index creation, status code: {r.status_code}, {r.text}")
-
-        pass
-
 
 class EsPizzerias:
     # TODO: Use Elasticsearch module where possible

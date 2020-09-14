@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "backend-pizza-cheeser.fullname" . }}-migration
+  labels:
+    {{- include "backend-pizza-cheeser.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-delete-policy": keep
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["python", "db/migrate.py"]
+          env:
+            - name: HOST
+              value: "{{ .Values.elasticsearch.clusterName }}-master"
+            - name: ES_PIZZERIAS_ID
+              value: "pizzerias"
+            - name: ES_PORT
+              value: "9200"
+            - name: ES_LOCATION_ID
+              value: "locations"
+            - name: DEBUG
+              value: "false"
+            - name: SENTRY_DSN
+              value: {{ .Values.sentry.dsn | quote }}
+            - name: SENTRY_ENVIRONMENT
+              value: {{ .Values.sentry.environment | quote }}
+            - name: SENTRY_RELEASE
+              value: {{ .Values.image.tag | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

@@ -6,5 +6,7 @@ ES_PORT = os.environ.get("ES_PORT", 9200)
 ES_PIZZERIAS_ID = os.environ.get("ES_PIZZERIAS_ID", "pizzerias")
 ES_LOCATION_ID = os.environ.get("ES_LOCATION_ID", "locations")
 HOST = os.environ.get("HOST", "elasticsearch")
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
+MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "minio:9000")
 
 MIN_DELAY_BETWEEN_SCRAPING = os.environ.get("MIN_DELAY_BETWEEN_SCRAPING", 86400)
