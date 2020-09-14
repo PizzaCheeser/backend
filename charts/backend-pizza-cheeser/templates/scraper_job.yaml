@@ -23,23 +23,16 @@ spec:
               - -c
               - date; python3 ScraperDatabaseConnector.py --location all && python3 ScraperDatabaseConnector.py --city all
             env:
-              - name: HOST
-                value: "{{ .Values.elasticsearch.clusterName }}-master"
-              - name: ES_PIZZERIAS_ID
-                value: "pizzerias"
-              - name: ES_PORT
-                value: "9200"
-              - name: ES_LOCATION_ID
-                value: "locations"
-              - name: DEBUG
-                value: "true"
-              - name: SENTRY_DSN
-                value: {{ .Values.sentry.dsn | quote }}
-              - name: SENTRY_ENVIRONMENT
-                value: {{ .Values.sentry.environment | quote }}
-              - name: SENTRY_RELEASE
-                value: {{ .Values.image.tag | quote }}
+              {{- include "backend-pizza-cheeser.env_vars" . | nindent 12}}
             resources:
               {{- toYaml .Values.scraper.resources | nindent 14 }}
+            volumeMounts:
+              - name: config
+                mountPath: "/opt/bin/backend/src/configuration"
+                readOnly: true
+          volumes:
+            - name: config
+              configMap:
+                name: {{ include "backend-pizza-cheeser.fullname" . }}-config
           restartPolicy: OnFailure
       backoffLimit: 2

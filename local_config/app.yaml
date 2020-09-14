@@ -1,0 +1,7 @@
+es:
+  host: elasticsearch
+  port: 9200
+
+minio: minio:9000
+
+environment: local

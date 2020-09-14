@@ -1,5 +1,4 @@
 import argparse
-import time
 
 import sentry_sdk
 from requests.exceptions import TooManyRedirects
@@ -12,12 +11,11 @@ from app.scrapers.base_scraper import ScraperBase
 from app.scrapers.location import LocationScraper
 from app.scrapers.restaurants import PizzeriasScraper
 from app.utility.validator import Validator
-from config import SENTRY_DSN
 
 
 class ScraperDatabaseConnector:
     def __init__(self):
-        es_settings = EsConfig()
+        es_settings = EsConfig(app.config["APP"]["es"])
         scraper_settings = ScraperBase()
 
         self.location = EsLocations(es_settings)
@@ -26,7 +24,6 @@ class ScraperDatabaseConnector:
         self.pizzerias = EsPizzerias(es_settings)
         self.search = EsSearch(es_settings)
         self.validator = Validator()
-        self.MIN_DELAY = int(app.config['MIN_DELAY_BETWEEN_SCRAPING'])
 
     def scrape_locations(self, url=None):
         '''
@@ -114,7 +111,6 @@ class ScraperDatabaseConnector:
 
 
 if __name__ == '__main__':
-    app.config.from_object('config')
     connector = ScraperDatabaseConnector()
 
     parser = argparse.ArgumentParser()
@@ -126,7 +122,7 @@ if __name__ == '__main__':
                                        'want to scrape pizzerias just skip this argument')
     args = parser.parse_args()
 
-    sentry_sdk.init(dsn=SENTRY_DSN)
+    sentry_sdk.init()
 
     try:
         if args.location == 'all':

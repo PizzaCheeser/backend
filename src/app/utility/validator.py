@@ -1,5 +1,6 @@
 from fuzzywuzzy import fuzz
 
+from app.app import app
 from app.database.base import EsConfig
 from app.database.search import EsSearch
 import morfeusz2
@@ -7,7 +8,7 @@ import morfeusz2
 
 class Validator:
     def __init__(self):
-        es_settings = EsConfig()
+        es_settings = EsConfig(app.config["APP"]["es"])
         self.search = EsSearch(es_settings)
         self.morfeusz = morfeusz2.Morfeusz()
 
@@ -32,8 +33,8 @@ class Validator:
     def pizza_validator(self, pizza):
         all_ingredients = self.search.search_all_ingredients()
 
-        list_original_ingredients = pizza['ingredients'].\
-            replace(' oraz ', ' ').replace(' i ', ' ').\
+        list_original_ingredients = pizza['ingredients']. \
+            replace(' oraz ', ' ').replace(' i ', ' '). \
             replace('z ', '').replace(',', ' ').lower().split()
 
         ingredients_list = [word.strip() for word in list_original_ingredients]

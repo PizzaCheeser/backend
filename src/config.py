@@ -1,12 +1,21 @@
+import importlib.util
 import os
 
-SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
-DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
-ES_PORT = os.environ.get("ES_PORT", 9200)
-ES_PIZZERIAS_ID = os.environ.get("ES_PIZZERIAS_ID", "pizzerias")
-ES_LOCATION_ID = os.environ.get("ES_LOCATION_ID", "locations")
-HOST = os.environ.get("HOST", "elasticsearch")
-ENVIRONMENT = os.environ.get("ENVIRONMENT", "local")
-MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "minio:9000")
+import yaml
+from flask import Flask
 
-MIN_DELAY_BETWEEN_SCRAPING = os.environ.get("MIN_DELAY_BETWEEN_SCRAPING", 86400)
+
+def load_config(app: Flask):
+    path = package_path("configuration")
+    with open(os.path.join(path, "app.yaml")) as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
+        app.config.from_mapping({"APP": config})
+
+
+def package_path(package_name: str) -> str:
+    spec = importlib.util.find_spec(package_name)
+    if spec is None:
+        raise ImportError('Not a package: %r', package_name)
+
+    for path in spec.submodule_search_locations:
+        return path

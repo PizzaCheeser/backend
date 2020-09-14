@@ -12,7 +12,7 @@ services:
       #- INGREDIENTS_FILE=/opt/bin/backend/ingredients_txt/all_ingredients.txt
     volumes:
       - ./src:/opt/bin/backend/src/
-      #- ./ingredients_txt:/opt/bin/backend/ingredients_txt/
+      - ./local_config:/opt/bin/backend/src/configuration
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
     ports:

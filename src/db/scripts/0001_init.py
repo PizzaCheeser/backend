@@ -1,9 +1,7 @@
 from app.app import app
+from app.database.base import LOCATIONS_INDEX, PIZZERIAS_INDEX
 from app.database.client import Client
 from db.migration import BaseMigration
-
-PIZZERIAS_INDEX = "pizzerias"
-LOCATIONS_INDEX = "locations"
 
 
 class Migration(BaseMigration):

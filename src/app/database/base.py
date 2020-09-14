@@ -1,32 +1,25 @@
 import json
 import time
 import unicodedata
+from typing import Dict
 
 import requests
 from elasticsearch import Elasticsearch
 
 from app.app import app
 
+PIZZERIAS_INDEX = "pizzerias"
+LOCATIONS_INDEX = "locations"
+VERSIONS_INDEX = "versions"
+
 
 class EsConfig:
-    def __init__(self, host=None,
-                 pizzerias_id=None,
-                 port=None,
-                 location=None
-                 ):
-        if not host:
-            host = app.config['HOST']
-        if not pizzerias_id:
-            pizzerias_id = app.config['ES_PIZZERIAS_ID']
-        if not port:
-            port = app.config['ES_PORT']
-        if not location:
-            location = app.config['ES_LOCATION_ID']
+    def __init__(self, config: Dict):
+        host = config["host"]
+        port = config["port"]
 
         self.url = f"http://{host}:{port}/"
         self.port = port
-        self.pizzerias_id = pizzerias_id
-        self.location_index = location
         self.es = Elasticsearch(f'{host}:{self.port}')
         self.header = {"Content-Type": "application/json"}
 
@@ -39,14 +32,11 @@ class EsPizzerias:
 
     def __init__(self, config):
         self.url = config.url
-        self.pizzerias_id = config.pizzerias_id
         self.header = config.header
         self.es = config.es
 
     def delete_index(self):
-        r = requests.delete(
-            url=self.url + f'{self.pizzerias_id}'
-        )
+        r = requests.delete(self.url + f'{PIZZERIAS_INDEX}')
 
         if r.status_code == 200:
             app.logger.info("Successfully removed pizzerias index")
@@ -70,7 +60,7 @@ class EsPizzerias:
         pizzeria.update(data)
 
         r = requests.post(
-            url=self.url + self.pizzerias_id + f"/_doc/{pizzeria_id}",
+            url=self.url + PIZZERIAS_INDEX + f"/_doc/{pizzeria_id}",
             json=pizzeria,
             headers=self.header
         )
@@ -80,7 +70,7 @@ class EsPizzerias:
             app.logger.error(f"Failed to insert pizzeria {pizzeria_id}: status code: {r.status_code}, {r.text}")
 
     def insert_pizza(self, pizzeria_id, pizza):
-        url = self.url + self.pizzerias_id + f'/_update/{pizzeria_id}/'
+        url = self.url + PIZZERIAS_INDEX + f'/_update/{pizzeria_id}/'
         body = {
             "script": {
                 "source": "ctx._source.pizza.add(params.pizza)",
@@ -105,7 +95,7 @@ class EsPizzerias:
     def check_if_exists(self, pizzeria_id):
         # TODO: this function should be in search class
         r = requests.get(
-            url=self.url + self.pizzerias_id + f"/_doc/{pizzeria_id}",
+            url=self.url + PIZZERIAS_INDEX + f"/_doc/{pizzeria_id}",
             headers=self.header
         )
 
@@ -127,7 +117,7 @@ class EsPizzerias:
                 }
         }
 
-        r = requests.post(self.url + self.pizzerias_id + '/_update/' + pizzeria_id,
+        r = requests.post(self.url + PIZZERIAS_INDEX + '/_update/' + pizzeria_id,
                           json=data, headers=self.header)
 
         if r.status_code == 200 or r.status_code == 201:
@@ -142,7 +132,7 @@ class EsPizzerias:
             }
         }
 
-        r = requests.post(self.url + self.pizzerias_id + '/_update/' + pizzeria_id,
+        r = requests.post(self.url + PIZZERIAS_INDEX + '/_update/' + pizzeria_id,
                           json=data, headers=self.header)
 
         if r.status_code == 200 or r.status_code == 201:
@@ -158,7 +148,7 @@ class EsLocations:
 
     def __init__(self, config):
         self.url = config.url
-        self.index = config.location_index
+        # self.index = config.location_index
         self.header = config.header
         self.es = config.es
         self.session = requests.Session()
@@ -181,7 +171,7 @@ class EsLocations:
         index = f"{normalized}-{code}"
 
         r = self.session.post(
-            url=self.url + self.index + f"/_doc/{index}",
+            url=self.url + LOCATIONS_INDEX + f"/_doc/{index}",
             data=json.dumps(location),
             headers=self.header
         )
@@ -189,16 +179,6 @@ class EsLocations:
             app.logger.info(f"Successfully inserted location {city}, {code}")
         else:
             app.logger.error(f"Failed to insert location {city}, {code}: status code: {r.status_code}, {r.text}")
-
-    def delete_index(self):
-        r = self.session.delete(
-            url=self.url + f'{self.index}'
-        )
-
-        if r.status_code == 200:
-            app.logger.info("Successfully removed locations index")
-        else:
-            app.logger.error(f"Failed to remove locations index: status code: {r.status_code}, {r.text}")
 
     def get_location(self, empty=False, city=None, postcode=None):
         query = [
@@ -218,7 +198,7 @@ class EsLocations:
             }
         }
 
-        results = self.es.search(index=self.index, body=full_query, size=100000)
+        results = self.es.search(index=LOCATIONS_INDEX, body=full_query, size=100000)
         results_amount = results["hits"]["total"]["value"]
         location = [
             {"postcode": result['_source']['post-code'],

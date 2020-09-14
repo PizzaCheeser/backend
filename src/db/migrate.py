@@ -7,12 +7,12 @@ from types import ModuleType
 from typing import Set
 
 from app.app import app
-from app.database.base import EsConfig
+from app.database.base import EsConfig, VERSIONS_INDEX
 from app.database.client import Client
+from config import load_config
 from db.migration import BaseMigration
 
 SCRIPTS_MODULES = "scripts"
-VERSIONS_INDEX = "versions"
 
 
 class MigratorError(Exception):
@@ -129,8 +129,7 @@ if __name__ == "__main__":
                         help='Clear whole database before running migrations')
     args = parser.parse_args()
 
-    app.config.from_object('config')
-    es = EsConfig()
+    es = EsConfig(app.config["APP"]["es"])
     migrator = Migrator(Client(es))
 
     if args.clear:

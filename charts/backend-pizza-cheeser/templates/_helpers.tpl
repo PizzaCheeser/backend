@@ -37,10 +37,23 @@ Common labels
 {{- define "backend-pizza-cheeser.labels" -}}
 helm.sh/chart: {{ include "backend-pizza-cheeser.chart" . }}
 {{ include "backend-pizza-cheeser.selectorLabels" . }}
+environment: {{ .Values.sentry.environment | quote }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Common env variables
+*/}}
+{{- define "backend-pizza-cheeser.env_vars" -}}
+- name: SENTRY_DSN
+  value: {{ .Values.sentry.dsn | quote }}
+- name: SENTRY_ENVIRONMENT
+  value: {{ .Values.sentry.environment | quote }}
+- name: SENTRY_RELEASE
+  value: {{ .Values.image.tag | quote }}
 {{- end -}}
 
 {{/*

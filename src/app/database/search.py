@@ -1,5 +1,6 @@
 from typing import List
 
+from app.database.base import PIZZERIAS_INDEX
 from app.exceptions.exceptions import SearchException, UnexpectedResult
 from prometheus_client import Summary
 
@@ -21,13 +22,12 @@ class EsSearch:
 
     def __init__(self, config):
         self.url = config.url
-        self.pizzerias_id = config.pizzerias_id
         self.header = {"Content-Type": "application/json"}
         self.es = config.es
 
     def get_all_pizzerias(self):
         try:
-            all_results = self.es.search(index=self.pizzerias_id)
+            all_results = self.es.search(index=PIZZERIAS_INDEX)
         except Exception as e:
             raise SearchException("Get all pizzerias failed") from e
 
@@ -65,7 +65,7 @@ class EsSearch:
 
         try:
             res = self.es.search(
-                index=self.pizzerias_id,
+                index=PIZZERIAS_INDEX,
                 body=query1
             )
         except Exception as e:
@@ -98,7 +98,7 @@ class EsSearch:
 
         try:
             res = self.es.search(
-                index=self.pizzerias_id,
+                index=PIZZERIAS_INDEX,
                 body=query
             )
         except Exception as e:
@@ -166,7 +166,7 @@ class EsSearch:
             "size": 10000
         }
 
-        result = self.es.search(index=self.pizzerias_id, body=query)['hits']['hits']
+        result = self.es.search(index=PIZZERIAS_INDEX, body=query)['hits']['hits']
         return result
 
     def get_pizzerias_details(self, pizzerias_ids: List[str]):
@@ -217,7 +217,7 @@ class EsSearch:
         @SEARCH_INGREDIENTS_EXECUTE_SEARCH.time()
         def execute_search():
             try:
-                return self.es.search(index=self.pizzerias_id, body=query)['hits']['hits']
+                return self.es.search(index=PIZZERIAS_INDEX, body=query)['hits']['hits']
             except Exception as e:
                 raise SearchException("Searching via ingredients and postcode failed") from e
 
@@ -241,7 +241,6 @@ class EsSearch:
             return pizzeria_url + '#' + prev_pizza_id
         else:
             return pizzeria_url
-
 
     @CLEAN_RESULTS.time()
     def __clean_matched_pizzas(self, results):

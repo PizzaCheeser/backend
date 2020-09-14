@@ -19,7 +19,8 @@ ENVS = ["dev", "prod"]
 
 class Migration(BaseMigration):
     def migrate(self, es: Client):
-        current_environment = app.config["ENVIRONMENT"]
+        current_environment = app.config["APP"]["environment"]
+        app.logger.info(f"Configuring backups for env {current_environment}")
 
         if current_environment == "local":
             app.logger.error("Local environment, skipping backup configuration")
@@ -34,7 +35,7 @@ class Migration(BaseMigration):
                         "type": "s3",
                         "settings": {
                             "bucket": BACKUP_BUCKET[env],
-                            "endpoint": app.config["MINIO_ENDPOINT"],
+                            "endpoint": app.config["APP"]["minio"],
                             "protocol": "http",
                             "path_style_access": True,
                             "readonly": env != current_environment,
@@ -72,4 +73,3 @@ class Migration(BaseMigration):
         for env in ENVS:
             r = es.client.delete(f"{es.es.url}_snapshot/{REPOSITORY_NAME[env]}")
             r.raise_for_status()
-

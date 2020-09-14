@@ -21,24 +21,17 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["python", "db/migrate.py"]
           env:
-            - name: HOST
-              value: "{{ .Values.elasticsearch.clusterName }}-master"
-            - name: ES_PIZZERIAS_ID
-              value: "pizzerias"
-            - name: ES_PORT
-              value: "9200"
-            - name: ES_LOCATION_ID
-              value: "locations"
-            - name: DEBUG
-              value: "false"
-            - name: SENTRY_DSN
-              value: {{ .Values.sentry.dsn | quote }}
-            - name: SENTRY_ENVIRONMENT
-              value: {{ .Values.sentry.environment | quote }}
-            - name: SENTRY_RELEASE
-              value: {{ .Values.image.tag | quote }}
+            {{- include "backend-pizza-cheeser.env_vars" . | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: "/opt/bin/backend/src/configuration"
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "backend-pizza-cheeser.fullname" . }}-config
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
