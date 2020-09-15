@@ -5,12 +5,11 @@ metadata:
   labels:
     {{- include "backend-pizza-cheeser.labels" . | nindent 4 }}
   annotations:
-    "helm.sh/hook": post-install
-    "helm.sh/hook-delete-policy": keep
+    "helm.sh/hook": post-install,post-upgrade
 spec:
-  ttlSecondsAfterFinished: 3600
   template:
     spec:
+      restartPolicy: OnFailure
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
