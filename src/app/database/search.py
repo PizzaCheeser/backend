@@ -1,6 +1,7 @@
 from typing import List
 
 from app.database.base import PIZZERIAS_INDEX
+from app.database.ingridents_filter import ingredients_whitelist
 from app.exceptions.exceptions import SearchException, UnexpectedResult
 from prometheus_client import Summary
 
@@ -71,8 +72,9 @@ class EsSearch:
         except Exception as e:
             raise SearchException("Get all ingredients failed") from e
         try:
-            all_ingredients = [key['key'] for key in
-                               res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']]
+            all_ingredients = [key['key'] for key
+                               in res["aggregations"]["all_ingredients"]['all_ingredients']['buckets']
+                               if key['key'] in ingredients_whitelist]
         except Exception as e:
             raise SearchException("Getting all ingredients from query result failed") from e
 
