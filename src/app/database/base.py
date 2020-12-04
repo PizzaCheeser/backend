@@ -180,7 +180,21 @@ class EsLocations:
         else:
             app.logger.error(f"Failed to insert location {city}, {code}: status code: {r.status_code}, {r.text}")
 
-    def get_location(self, empty=False, city=None, postcode=None):
+    def get_locations_count(self):
+        r = self.session.get(
+            url=self.url + LOCATIONS_INDEX + f"/_count",
+        )
+        r.raise_for_status()
+        return r.json()["count"]
+
+    def get_location(self, empty=False, city=None, postcode=None, page=None, size=None):
+        if not size:
+            size = 100000
+
+        from_ = 0
+        if page:
+            from_ = (page - 1) * size
+
         query = [
             {"match": {"empty": empty}}
         ]
@@ -198,7 +212,7 @@ class EsLocations:
             }
         }
 
-        results = self.es.search(index=LOCATIONS_INDEX, body=full_query, size=100000)
+        results = self.es.search(index=LOCATIONS_INDEX, body=full_query, size=size, from_=from_)
         results_amount = results["hits"]["total"]["value"]
         location = [
             {"postcode": result['_source']['post-code'],

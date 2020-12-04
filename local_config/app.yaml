@@ -7,3 +7,4 @@ minio: minio:9000
 environment: local
 
 base_url: http://localhost:5000/
+api_base_url: http://localhost:5000/

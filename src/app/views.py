@@ -1,4 +1,5 @@
 import json
+from math import floor
 
 from flask import request, Response, jsonify
 import xml.etree.ElementTree as ET
@@ -11,20 +12,40 @@ from app.database.search import EsSearch
 es_settings = EsConfig(app.config["APP"]["es"])
 search = EsSearch(es_settings)
 
+PER_PAGE = 10000
 
-@app.route('/sitemap.xml', methods=['GET'])
-def get_sitemap():
-    locations = EsLocations(es_settings).get_location()
+
+def _pretify(element):
+    rough_string = ET.tostring(element, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
+
+
+@app.route('/master_sitemap.xml', methods=['GET'])
+def get_master_sitemap():
+    count = EsLocations(es_settings).get_locations_count()
+    pages = floor(count / PER_PAGE)
+
+    sitemapindex = ET.Element('sitemapindex', {'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9'})
+
+    for page in range(1, pages):
+        sitemap = ET.SubElement(sitemapindex, 'sitemap')
+        ET.SubElement(sitemap, 'loc').text = app.config["APP"]["api_base_url"] + "sitemap/" + str(page)
+
+    return Response(response=_pretify(sitemapindex))
+
+
+@app.route('/sitemap/<page>', methods=['GET'])
+def get_sitemap(page):
+    locations = EsLocations(es_settings).get_location(page=int(page), size=PER_PAGE)
     urlset = ET.Element('urlset', {'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9'})
 
     for location in locations:
         url = ET.SubElement(urlset, 'url')
-        ET.SubElement(url, 'loc').text = app.config["APP"]["base_url"]+location['postcode']
+        ET.SubElement(url, 'loc').text = app.config["APP"]["base_url"] + location['postcode']
         ET.SubElement(url, 'changefreq').text = 'weekly'
 
-    rough_string = ET.tostring(urlset, 'utf-8')
-    reparsed = minidom.parseString(rough_string)
-    return Response(response=reparsed.toprettyxml(indent="  "))
+    return Response(response=_pretify(urlset))
 
 
 @app.route('/api/all-ingredients/<postcode>', methods=['GET'])

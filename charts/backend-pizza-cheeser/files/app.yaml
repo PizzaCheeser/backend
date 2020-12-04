@@ -7,3 +7,4 @@ minio: minio:9000
 environment: "{{  .Values.sentry.environment }}"
 
 base_url: "{{  .Values.ui.baseURL }}"
+api_base_url: "{{ .Values.ingress.protocol }}://{{ .Values.ingress.host }}/"
