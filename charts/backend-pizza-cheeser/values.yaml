@@ -9,6 +9,9 @@ image:
   tag: v0.0.3
   pullPolicy: IfNotPresent
 
+ui:
+  baseURL: https://pizza-cheeser.psota.pl/
+
 imagePullSecrets:
   - name: gitlab-pull-secret
 

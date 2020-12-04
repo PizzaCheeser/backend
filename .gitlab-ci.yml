@@ -36,7 +36,7 @@ deploy-dev:
   script:
     - cd charts/backend-pizza-cheeser
     - helm dependency update
-    - helm upgrade --install backend-dev --timeout=3600s --namespace pizzacheeser --set image.tag="$CI_COMMIT_SHORT_SHA" --set ingress.host="api.dev.pizza-cheeser.psota.pl" --set elasticsearch.clusterName="pizza-cheeser-dev" --set scraper.schedule="5 4 * * */5" --set sentry.environment="$CI_ENVIRONMENT_SLUG" --set sentry.dsn="$SENTRY_DSN" .
+    - helm upgrade --install backend-dev --timeout=3600s --namespace pizzacheeser --set image.tag="$CI_COMMIT_SHORT_SHA" --set ingress.host="api.dev.pizza-cheeser.psota.pl" --set elasticsearch.clusterName="pizza-cheeser-dev" --set scraper.schedule="5 4 * * */5" --set sentry.environment="$CI_ENVIRONMENT_SLUG" --set sentry.dsn="$SENTRY_DSN" --set ui.baseURL="https://dev.pizza-cheeser.psota.pl/" .
   only:
     - develop
 

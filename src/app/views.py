@@ -1,13 +1,30 @@
 import json
 
 from flask import request, Response, jsonify
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
 
 from app.app import app
-from app.database.base import EsConfig
+from app.database.base import EsConfig, EsLocations
 from app.database.search import EsSearch
 
 es_settings = EsConfig(app.config["APP"]["es"])
 search = EsSearch(es_settings)
+
+
+@app.route('/sitemap.xml', methods=['GET'])
+def get_sitemap():
+    locations = EsLocations(es_settings).get_location()
+    urlset = ET.Element('urlset', {'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9'})
+
+    for location in locations:
+        url = ET.SubElement(urlset, 'url')
+        ET.SubElement(url, 'loc').text = app.config["APP"]["base_url"]+location['postcode']
+        ET.SubElement(url, 'changefreq').text = 'weekly'
+
+    rough_string = ET.tostring(urlset, 'utf-8')
+    reparsed = minidom.parseString(rough_string)
+    return Response(response=reparsed.toprettyxml(indent="  "))
 
 
 @app.route('/api/all-ingredients/<postcode>', methods=['GET'])
